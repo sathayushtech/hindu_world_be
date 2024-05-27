@@ -77,11 +77,13 @@ class continentsView(viewsets.ModelViewSet):
 class CountsView(APIView):
     def get(self, request):
         org_count = organization.objects.count()
-        # country_count = Country.objects.count()
-        # continent_count = Country.objects.values('continent').distinct().count()
+        country_count = Country.objects.count()
+        continent_count = continents.objects.values('continent').distinct().count()
         
         return Response({
             'organization_count': org_count,
+            'country_count':country_count,
+            'continent_count':continent_count
            
         })
 

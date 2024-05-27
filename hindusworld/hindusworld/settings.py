@@ -93,7 +93,7 @@ WSGI_APPLICATION = 'hindusworld.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'gramadevata_db3',
+        'NAME': 'hindu_world1.2',
         'USER': 'root',
         'PASSWORD': 'admin',
         'HOST':'localhost',

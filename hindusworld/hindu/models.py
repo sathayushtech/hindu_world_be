@@ -10,18 +10,18 @@ import re
 class continents(models.Model):
     _id = models.CharField(db_column='_id', primary_key=True, max_length=45 ,default=uuid.uuid1, unique=True ,editable=False)
     name = models.CharField(db_column='name', max_length=45) 
-    capital = models.CharField(db_column='capital', max_length=45, blank=True, null=True) 
+    # capital = models.CharField(db_column='capital', max_length=45, blank=True, null=True) 
     alternativename = models.CharField(db_column='alternativename', max_length=45, blank=True, null=True) 
     desc = models.CharField(db_column='desc', max_length=250, blank=True, null=True) 
-    type=models.CharField(db_column='type', max_length=30, choices=[('COUNTRY','COUNTRY')],default='COUNTRY',blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    type=models.CharField(db_column='type', max_length=30)
+    created_at = models.DateTimeField(db_column='created_at',auto_now_add=True)
 
     def __str__(self):
         return self.name
 
     class Meta:
         managed=False
-        db_table = 'continents'
+        db_table = 'continent'
 
 
 
@@ -37,6 +37,7 @@ class Country(models.Model):
     desc = models.CharField(db_column='desc', max_length=250, blank=True, null=True) 
     type=models.CharField(db_column='type', max_length=30, choices=[('COUNTRY','COUNTRY')],default='COUNTRY',blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    continent=models.ForeignKey(continents,on_delete=models.CASCADE,related_name='continent')
 
     def __str__(self):
         return self.name
@@ -120,7 +121,7 @@ class organization(models.Model):
             MinLengthValidator(1, "Location cannot be empty")
         ]
     )
-    wed_url = models.URLField(
+    web_url = models.URLField(
         validators=[
             URLValidator(message="Invalid URL format")
         ]
@@ -143,19 +144,19 @@ class organization(models.Model):
         ]
     )
 
-    country=models.ForeignKey(Country,on_delete=models.CASCADE,related_name='country')
-    def clean(self):
-        super().clean()
-        if not re.match(r'^\d{4}-\d{2}-\d{2}$', self.est_date):
-            raise ValidationError({'est_date': "Date must be in YYYY-MM-DD format"})
+    country=models.ForeignKey(Country,on_delete=models.CASCADE,related_name='country',db_column="country")
+    # def clean(self):
+    #     super().clean()
+    #     if not re.match(r'^\d{4}-\d{2}-\d{2}$', self.est_date):
+    #         raise ValidationError({'est_date': "Date must be in YYYY-MM-DD format"})
 
-        # Add any other custom validations here
+    #     # Add any other custom validations here
 
-    def save(self, *args, **kwargs):
-        self.full_clean()  # This will call clean() and run all the validations
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     self.full_clean()  # This will call clean() and run all the validations
+    #     super().save(*args, **kwargs)
 
 
     class Meta:
-        db_table = "Organization"
+        db_table = "organization"
 

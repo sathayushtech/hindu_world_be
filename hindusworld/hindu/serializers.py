@@ -30,14 +30,14 @@ class countrySerializer(serializers.ModelSerializer):
 
 
 class continentsSerializer(serializers.ModelSerializer):
-     country=serializers.SerializerMethodField()
-     def get_country(self,instance):
-          country=instance.country
-          return{
+    #  country=serializers.SerializerMethodField()
+    #  def get_country(self,instance):
+    #       country=instance.country
+    #       return{
                
-               'name':country.name
+    #            'name':country.name
 
-          } 
+        #   } 
      class Meta:
           model=continents
           fields="__all__"
