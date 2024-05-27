@@ -27,7 +27,9 @@ def save_image_to_folder(org_images, _id,name):
     image_data = base64.b64decode(org_images)
     folder_name = str(_id)
     img_url = settings.FILE_URL
+
     folder_path = os.path.join(img_url,"organization", folder_name)
+    print(folder_path,"11122223333")
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
     image_name = name+".jpg"
