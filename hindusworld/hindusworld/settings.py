@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'hindu',
     'rest_framework',
     'drf_yasg',
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -90,16 +91,37 @@ WSGI_APPLICATION = 'hindusworld.wsgi.application'
 # }
 
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'hindu_world1.2',
+#         'USER': 'root',
+#         'PASSWORD': 'admin',
+#         'HOST':'localhost',
+#         'PORT':'3306',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'hindu_world1.2',
-        'USER': 'root',
-        'PASSWORD': 'admin',
-        'HOST':'localhost',
-        'PORT':'3306',
+        'ENGINE': os.environ.get("DB_ENGINE"),
+        'NAME': os.environ.get("DB_NAME"),
+        'USER': os.environ.get("DB_USER"),
+        'PASSWORD': os.environ.get("DB_PASSWORD"),
+        'HOST': os.environ.get("DB_HOST"),  # Set to your MySQL server host
+        'PORT': os.environ.get("DB_PORT")
     }
 }
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200",
+    "http://localhost:8787"
+    # Add other allowed origins as needed
+]
+
+'corsheaders.middleware.CorsMiddleware',
 
 
 # Password validation
