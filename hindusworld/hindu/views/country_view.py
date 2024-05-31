@@ -6,26 +6,26 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.cache import cache
 
-
+  
 class CountryView(viewsets.ModelViewSet):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer1
-    # cache#########################################cache function#####################################################
-    # def list(self, request, *args, **kwargs):
-    #     cache_key = 'countries_list'
-    #     cached_data = cache.get(cache_key)
+ #this is for cached data##   
+    def list(self, request, *args, **kwargs):
+        cache_key = 'countries_list'
+        cached_data = cache.get(cache_key)
 
-    #     if cached_data is not None:
-    #         # Add field indicating data is from cache
-    #         response_data = {'source': 'cache', 'data': cached_data}
-    #         return Response(response_data)
+        if cached_data is not None:
+            # Add field indicating data is from cache
+            response_data = {'source': 'cache', 'data': cached_data}
+            return Response(response_data)
 
-    #     response = super().list(request, *args, **kwargs)
-    #     cache.set(cache_key, response.data, timeout=None)  # Cache indefinitely
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, timeout=None)  # Cache indefinitely
 
-    #     # Add field indicating data is from database
-    #     response_data = {'source': 'database', 'data': response.data}
-    #     return Response(response_data)
+        # Add field indicating data is from database
+        response_data = {'source': 'database', 'data': response.data}
+        return Response(response_data)
 
 
 
