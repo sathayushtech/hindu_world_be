@@ -18,7 +18,7 @@ class OrgnisationSerializer(serializers.ModelSerializer):
                 format= image_path_to_binary(filename)
                 # print(format,"******************")
                 return format
-            return[]
+            return None
     class Meta:
         model = organization
         fields = "__all__"
@@ -28,3 +28,11 @@ class OrgnisationSerializer1(serializers.ModelSerializer):
     class Meta:
         model = organization
         fields = "__all__"
+
+
+
+class OrgnisationSerializer2(serializers.ModelSerializer):
+    
+    class Meta:
+        model = organization
+        fields = ['status']        

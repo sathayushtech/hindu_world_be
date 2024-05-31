@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from ..models import Country,organization
+from ..utils import image_path_to_binary
 
 
 class countrySerializer(serializers.ModelSerializer):
@@ -25,3 +26,20 @@ class countrySerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Country
 #         fields = "__all__"
+
+
+
+class CountrySerializer1(serializers.ModelSerializer):
+    image_location=serializers.SerializerMethodField()
+    def get_image_location(self, instance):
+            filename = instance.image_location
+            print(filename,"yrtyh")
+            if filename:
+                format= image_path_to_binary(filename)
+                print(format,"******************")
+                return format
+            return None
+    
+    class Meta:
+        model = Country
+        fields = "__all__"

@@ -7,7 +7,7 @@ class continents(models.Model):
     # capital = models.CharField(db_column='capital', max_length=45, blank=True, null=True) 
     alternativename = models.CharField(db_column='alternativename', max_length=45, blank=True, null=True) 
     desc = models.CharField(db_column='desc', max_length=250, blank=True, null=True) 
-    type=models.CharField(db_column='type', max_length=30)
+    type=models.CharField(db_column='type', max_length=30,choices=[('CONTINENT','CONTINENT')],default='CONTINENT')
     created_at = models.DateTimeField(db_column='created_at',auto_now_add=True)
 
     def __str__(self):
