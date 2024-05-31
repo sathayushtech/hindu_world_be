@@ -16,7 +16,10 @@ load_dotenv()
 
 FILE_URL = os.getenv('File_path')
 
-
+INTERNAL_IPS = [
+    '127.0.0.1',
+    # other internal IPs
+]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -57,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'hindusworld.urls'
@@ -121,7 +125,19 @@ CORS_ALLOWED_ORIGINS = [
     # Add other allowed origins as needed
 ]
 
-'corsheaders.middleware.CorsMiddleware',
+
+
+
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': 'redis://127.0.0.1:6379/1',  # Redis server address and database index
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#         },
+#         'KEY_PREFIX': 'hindu',
+#     },
+# }
 
 
 # Password validation

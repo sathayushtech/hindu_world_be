@@ -3,12 +3,13 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from ..models import organization, Country,continents
-from ..serializers.organization_serializer import OrgnisationSerializer,OrgnisationSerializer1
+from ..serializers.organization_serializer import OrgnisationSerializer,OrgnisationSerializer1,OrgnisationSerializer2
 from ..utils import save_image_to_folder
 from ..pagination.org_pagination import OrganizationPagination
 from ..pagination.orgbycountry_pagination import orgByCountryPagination
 from rest_framework.generics import ListAPIView
 from rest_framework import status
+from rest_framework import status as http_status
 
 
 
@@ -50,8 +51,8 @@ class AddOrgnization(generics.GenericAPIView):
         print(org_logo, "vqqqqfvfv")
 
         # Temporarily set these fields to "null" for initial validation and saving
-        request.data['org_images'] = "null"
-        request.data['org_logo'] = "null"
+        request.data['org_images'] = "[ ]"
+        request.data['org_logo'] = "None"
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -83,7 +84,7 @@ class GetItemByfield_InputView(generics.GenericAPIView):
 
     def get(self, request, input_value, field_name):
         try:
-            field_names = [field.name for field in Country._meta.get_fields()]
+            field_names = [field.name for field in organization._meta.get_fields()]
             if field_name in field_names:
                 filter_kwargs = {field_name: input_value}
                 queryset = organization.objects.filter(**filter_kwargs)
@@ -100,5 +101,68 @@ class GetItemByfield_InputView(generics.GenericAPIView):
                 'status': 404
             })
         
+
+
+
+class GetOrgByStatus_Pending(generics.GenericAPIView):
+    serializer_class = OrgnisationSerializer1
+
+    def get(self, request):
+        orgs = organization.objects.filter(status='PENDING')  # Filter by 'PENDING' status
+        
+        if not orgs.exists():
+            return Response({
+                'message': 'No organizations found with PENDING status',
+                'result': []
+            })
+
+        serializer = self.get_serializer(orgs, many=True)
+        return Response({
+            'message': 'success',
+            'result': serializer.data
+        })
+        
+class GetOrgByStatus_Success(generics.GenericAPIView):
+    serializer_class = OrgnisationSerializer1
+
+    def get(self, request):
+        orgs = organization.objects.filter(status='SUCCESS')  # Filter by 'PENDING' status
+        
+        if not orgs.exists():
+            return Response({
+                'message': 'No organizations found with SUCCESS status',
+                'result': []
+            })
+
+        serializer = self.get_serializer(orgs, many=True)
+        return Response({
+            'message': 'success',
+            'result': serializer.data
+        }) 
+
+class UpdateOrgStatus(generics.GenericAPIView):
+    serializer_class = OrgnisationSerializer2
+
+    def put(self, request, org_id):
+        try:
+            org = organization.objects.get(pk=org_id, status='PENDING')
+        except organization.DoesNotExist:
+            return Response({
+                'message': 'Organization with PENDING status not found for the provided ID'
+            }, status=http_status.HTTP_404_NOT_FOUND)
+
+        # Update the status to 'SUCCESS'
+        org.status = 'SUCCESS'
+        org.save()
+
+        # Serialize the updated organization
+        serializer = self.get_serializer(org)
+
+        return Response({
+            'message': 'success',
+            'result': serializer.data
+        })
+
+
 
 

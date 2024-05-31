@@ -11,6 +11,7 @@ class Country(models.Model):
     type=models.CharField(db_column='type', max_length=30, choices=[('COUNTRY','COUNTRY')],default='COUNTRY',blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     continent=models.ForeignKey(continents,on_delete=models.CASCADE,related_name='continent')
+    image_location = models.TextField(db_column='image_location')
 
     def __str__(self):
         return self.name

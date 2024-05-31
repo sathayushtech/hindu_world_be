@@ -4,6 +4,7 @@ from django.core.validators import URLValidator, RegexValidator, MaxLengthValida
 from django.core.exceptions import ValidationError
 import re
 from ..models import Country
+from ..enums import status
 
 
 class organization(models.Model):
@@ -40,7 +41,7 @@ class organization(models.Model):
             MaxLengthValidator(50),
             MinLengthValidator(1, "Establishment date cannot be empty"),
             RegexValidator(
-                regex=r'^\d{4}-\d{2}-\d{2}$',
+             
                 message="Date must be in YYYY-MM-DD format"
             )
         ]
@@ -79,24 +80,13 @@ class organization(models.Model):
             MinLengthValidator(1, "Organization images cannot be empty")
         ]
     )
-    org_logo = models.TextField(
-        validators=[
-            MinLengthValidator(1, "Organization logo cannot be empty")
-        ]
-    )
+    org_logo = models.TextField(null=True,blank=True)
+    status=models.CharField(max_length=50,choices=[(e.name,e.value) for e in status],default=status.PENDING.value)
 
     country=models.ForeignKey(Country,on_delete=models.CASCADE,related_name='country',db_column="country")
-    # def clean(self):
-    #     super().clean()
-    #     if not re.match(r'^\d{4}-\d{2}-\d{2}$', self.est_date):
-    #         raise ValidationError({'est_date': "Date must be in YYYY-MM-DD format"})
-
-    #     # Add any other custom validations here
-
-    # def save(self, *args, **kwargs):
-    #     self.full_clean()  # This will call clean() and run all the validations
-    #     super().save(*args, **kwargs)
+  
 
 
     class Meta:
+        managed=False
         db_table = "organization"
