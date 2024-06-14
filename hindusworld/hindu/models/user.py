@@ -19,7 +19,7 @@ class Register(models.Model):
     verification_otp = models.CharField(max_length=6, null=True, blank=True)
     verification_otp_created_time = models.DateTimeField(null=True)
     verification_otp_resend_count = models.IntegerField(default=0)
-    status = models.CharField(max_length=50)
+    status = models.CharField(max_length=50,choices=[(e.name,e.value) for e in UserStatus],default=UserStatus.CREATED.value)
     username = models.CharField(max_length=200, db_column='username')
     password = models.CharField(max_length=200)
     forgot_password_otp = models.CharField(max_length=6, null=True, blank =True)
