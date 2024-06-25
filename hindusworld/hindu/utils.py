@@ -40,19 +40,25 @@ def save_image_to_folder(org_images, _id,name):
 
 
 
-
-
-
-
-
-
-
-
-def send_email(emil,otp):
-    subject = f'your GRAMADEVATA account verfication email is:'
-    message = f'your otp is {otp}'
+def send_email(username, otp):
+    subject = 'Your account verification email'
+    message = f'Your OTP is: {otp}'
+    print(message,"1111111111111")
     email_from = settings.EMAIL_HOST_USER
-    send_mail(subject,message,email_from,emil)
+    recipient_list = [username] 
+    send_mail(subject, message, email_from, recipient_list)
+
+
+
+
+
+
+
+# def send_email(emil,otp):
+#     subject = f'your  account verfication email is:'
+#     message = f'your otp is {otp}'
+#     email_from = settings.EMAIL_HOST_USER
+#     send_mail(subject,message,email_from,emil)
 
 
 def generate_otp(length = 6):

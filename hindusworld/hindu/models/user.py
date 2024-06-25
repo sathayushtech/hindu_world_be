@@ -11,6 +11,7 @@ from django.db.models.signals import post_save
 
 
 
+
 class Register(models.Model):
     _id = models.CharField(db_column='_id', primary_key=True, max_length=45, default=uuid.uuid1, unique=True, editable=False) 
     name = models.CharField(max_length=200)

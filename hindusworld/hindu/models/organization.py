@@ -84,6 +84,8 @@ class organization(models.Model):
     status=models.CharField(max_length=50,choices=[(e.name,e.value) for e in status],default=status.PENDING.value)
 
     country=models.ForeignKey(Country,on_delete=models.CASCADE,related_name='country',db_column="country")
+    # organization_members = models.JSONField(null=True, blank=True)  
+
   
 
 
