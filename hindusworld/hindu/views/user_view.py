@@ -1,11 +1,12 @@
-from ..serializers import RegisterSerializer,LoginSerializer,RegisterSerializer1,VerifySerializer,ResendOtpSerializer,ResetSerializer
+from ..serializers import UserSerializer,LoginSerializer,VerifySerializer,ResetSerializer,ResetSerializer,ResendOtpSerializer
 from rest_framework import viewsets,generics
 from ..models import Register
-from rest_framework .views import APIView
+from rest_framework .views import APIView,status
 from rest_framework .response import Response
 from ..enums.user_status_enum import UserStatus
 from rest_framework_simplejwt.tokens import RefreshToken
 from ..utils import generate_otp, validate_email,send_email,send_sms,Resend_sms
+from django.contrib.auth import authenticate
 
 
 
@@ -14,85 +15,126 @@ from ..utils import generate_otp, validate_email,send_email,send_sms,Resend_sms
 
 
 
-class Registerview(viewsets.ModelViewSet):
-    queryset = Register.objects.all()
-    serializer_class = RegisterSerializer
+# class Registerview(viewsets.ModelViewSet):
+#     queryset = Register.objects.all()
+#     serializer_class = RegisterSerializer
 
-    def list(self, request):
-        users = Register.objects.all()
-        serializer = RegisterSerializer1(users, many=True)
-        return Response(serializer.data)
+#     def list(self, request):
+#         users = Register.objects.all()
+#         serializer = RegisterSerializer1(users, many=True)
+#         return Response(serializer.data)
     
-    def create(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        instance = serializer.save()
-        return Response({
-            "status": 200,
-            "result": RegisterSerializer(instance).data,
-            "message": "success"
-        })
+#     def create(self, request):
+#         serializer = RegisterSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         instance = serializer.save()
+#         return Response({
+#             "status": 200,
+#             "result": RegisterSerializer(instance).data,
+#             "message": "success"
+#         })
     
-    def retrieve(self, request, pk=None):  # Change the method name from GetById to retrieve
-        instance = self.get_object()
-        serializer = RegisterSerializer1(instance)  # Use RegisterSerializer1 for single instance
-        return Response({
-            "message": "retrieved successfully",
-            "data": serializer.data
-        })
+#     def retrieve(self, request, pk=None):  # Change the method name from GetById to retrieve
+#         instance = self.get_object()
+#         serializer = RegisterSerializer1(instance)  # Use RegisterSerializer1 for single instance
+#         return Response({
+#             "message": "retrieved successfully",
+#             "data": serializer.data
+#         })
 
-    def update(self, request, pk=None):
-        instance = self.get_object()
-        serializer = RegisterSerializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        updated_instance = serializer.save()
-        return Response({
-            "message": "updated successfully",
-            "data": RegisterSerializer(updated_instance).data
-        })
+#     def update(self, request, pk=None):
+#         instance = self.get_object()
+#         serializer = RegisterSerializer(instance, data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         updated_instance = serializer.save()
+#         return Response({
+#             "message": "updated successfully",
+#             "data": RegisterSerializer(updated_instance).data
+#         })
     
-    def destroy(self, request, pk=None):
-        instance = self.get_object()
-        instance.status = 'inactive'  # Marking as inactive instead of actually deleting
-        instance.save()
-        return Response({"message": "soft deleted successfully"})
+#     def destroy(self, request, pk=None):
+#         instance = self.get_object()
+#         instance.status = 'inactive'  # Marking as inactive instead of actually deleting
+#         instance.save()
+#         return Response({"message": "soft deleted successfully"})
 
 
     
+# class LoginApiView(generics.GenericAPIView):
+#     serializer_class = LoginSerializer
+#     def post(self,request):
+#         username = request.data["username"]
+#         print(username,"11111111")
+#         password = request.data["password"]
+#         print(password,"222222222")
+        
+#         try:
+#             a = Register.objects.get(username=username)
+
+#         except Register.DoesNotExist:
+#             return Response({
+#                 "status":400,
+#                 "message":"invalid username"
+#             })
+#         if a.password == password:
+#             if a.status != UserStatus.ACTIVE.value:
+#                 return Response({
+#                     "error": "Verify account before login"
+#                 })
+            
+#             return Response({
+#                 "status":200,
+#                 "message":"login succesfully",
+#                 # "refresh_token":"refresh"
+        
+#             })
+#         else:
+#             return Response({
+#                 "status":200,
+#                 "message":"invalid password"
+#         })
+
+
+
 class LoginApiView(generics.GenericAPIView):
-    serializer_class = LoginSerializer
-    def post(self,request):
-        username = request.data["username"]
-        print(username,"11111111")
-        password = request.data["password"]
-        print(password,"222222222")
+    serializer_class=LoginSerializer
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        username = data['username']
+        password = data['password']
         
-        try:
-            a = Register.objects.get(username=username)
-
-        except Register.DoesNotExist:
-            return Response({
-                "status":400,
-                "message":"invalid username"
-            })
-        if a.password == password:
-            if a.status != UserStatus.ACTIVE.value:
-                return Response({
-                    "error": "Verify account before login"
-                })
-            
-            return Response({
-                "status":200,
-                "message":"login succesfully",
-                # "refresh_token":"refresh"
+        user = authenticate(username=username, password=password)
         
-            })
-        else:
+        if user is None:
             return Response({
-                "status":200,
-                "message":"invalid password"
-        })
+                'message':"Something went wrong"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+   
+        
+        refresh = RefreshToken.for_user(user)
+        
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'username': user.get_username(),
+            'user_id': user.id            
+        }, status=status.HTTP_200_OK)
+        
+class Registerview(generics.GenericAPIView):
+    serializer_class=UserSerializer
+    def post(self, request, *args, **kwargs):
+        print("bgvfdsa")
+        data = request.data
+        serializer = UserSerializer(data=data)
+        print(serializer,"oiuhygt")
+        serializer.is_valid(raise_exception=True)  
+        serializer.save()
+        return Response({
+            'message': "Registration Successful, Please check the Email"
+        }, status=status.HTTP_201_CREATED)
             
+        
 
     
 class VerifyOtpView(generics.GenericAPIView):
@@ -106,7 +148,7 @@ class VerifyOtpView(generics.GenericAPIView):
         verification_otp = data['verification_otp']
         print(verification_otp,"ooooooooooooooooooooooo")
         try:
-            user = Register.objects.get(username=username)
+            user = Register.objects.using('login_db').get(username=username)
         except Register.DoesNotExist:
             return Response({
                 "status":400,
@@ -135,7 +177,7 @@ class ResendOtp(generics.GenericAPIView):
     def post(self,request):
         username = request.data["username"]
         try:
-            user = Register.objects.get(username=username)
+            user = Register.objects.using('login_db').get(username=username)
         except Register.DoesNotExist:
             return Response({
                 "status": 400,
@@ -174,7 +216,7 @@ class ForgotOtp(generics.GenericAPIView):
     def post(self,request):
         username = request.data["username"]
         try:
-            user = Register.objects.get(username=username)
+            user = Register.objects.using('login_db').get(username=username)
         except Register.DoesNotExist:
             return Response({
                 "status": 400,
@@ -214,7 +256,7 @@ class ResetPassword(generics.GenericAPIView):
                 "message":"required otp and resetpassword"
             })
         try:
-            user=Register.objects.get(forgot_password_otp=otp)
+            user=Register.objects.using('login_db').get(forgot_password_otp=otp)
         except Register.DoesNotExist:
             return Response({
                 "status":400,

@@ -10,6 +10,7 @@ from ..pagination.orgbycountry_pagination import orgByCountryPagination
 from rest_framework.generics import ListAPIView
 from rest_framework import status
 from rest_framework import status as http_status
+from rest_framework.permissions import IsAuthenticated
 
 
 
@@ -43,6 +44,12 @@ class OrgnizationView(viewsets.ModelViewSet):
 
 class AddOrgnization(generics.GenericAPIView):
     serializer_class = OrgnisationSerializer1
+    permission_classes = []
+    
+    def get_permissions(self):
+        if self.request.method in ['POST', 'PUT', ]:
+            return [IsAuthenticated()]
+        return super().get_permissions()
 
     def post(self, request, *args, **kwargs):
         org_images = request.data.get('org_images')

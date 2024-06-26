@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path,os
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     "corsheaders",
+    "rest_framework_simplejwt",
 ]
 
 MIDDLEWARE = [
@@ -62,6 +64,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 ]
+
+AUTH_USER_MODEL = 'hindu.Register'
 
 ROOT_URLCONF = 'hindusworld.urls'
 
@@ -105,16 +109,25 @@ WSGI_APPLICATION = 'hindusworld.wsgi.application'
 #         'PORT':'3306',
 #     }
 # }
+DATABASE_ROUTERS = ['hindusworld.db_routers.RegisterRouter']
 
 DATABASES = {
     'default': {
-        'ENGINE': os.environ.get("DB_ENGINE"),
-        'NAME': os.environ.get("DB_NAME"),
-        'USER': os.environ.get("DB_USER"),
-        'PASSWORD': os.environ.get("DB_PASSWORD"),
-        'HOST': os.environ.get("DB_HOST"),  # Set to your MySQL server host
-        'PORT': os.environ.get("DB_PORT")
-    }
+        'ENGINE': os.getenv("DB_ENGINE"),
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': os.getenv("DB_HOST"),
+        'PORT': os.getenv("DB_PORT"),
+    },
+    'login_db': {
+        'ENGINE': os.getenv("LOGIN_DB_ENGINE"),
+        'NAME': os.getenv("LOGIN_DB_NAME"),
+        'USER': os.getenv("LOGIN_DB_USER"),
+        'PASSWORD': os.getenv("LOGIN_DB_PASSWORD"),
+        'HOST': os.getenv("LOGIN_DB_HOST"),
+        'PORT': os.getenv("LOGIN_DB_PORT"),
+    },
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -195,12 +208,38 @@ DEFAULT_FROM_EMAIL = 'sandhya.sathayush@gmail.com'
 
 
 
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST='mail.sathayushtech.com'
+# EMAIL_USE_TLS=False
+# EMAIL_PORT=587
+# OTP_EMAIL='otp@sathayushtech.com'
+# OTP_EMAIL_PASSWORD='Parents++@1'
+# INFO_EMAIL='infogd@sathayushtech.com'
+# INFO_EMAIL_PASSWORD='Parents++@1'
+# GD_FROM_EMAIL = 'gdf@sathayushtech.com'
+# GD_FROM_EMAIL_PASSWORD = 'Parents++@1'
+
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        # other authentication classes as needed
+
     ),
 }
+
+SIMPLE_JWT = {
+    # how long the original token is valid for
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=90),
+
+    # allow refreshing of tokens
+    'JWT_ALLOW_REFRESH': True,
+
+    # this is the maximum time AFTER the token was issued that
+    # it can be refreshed.  exprired tokens can't be refreshed.
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
+}
+ 
 
 
 SWAGGER_SETTINGS = {
