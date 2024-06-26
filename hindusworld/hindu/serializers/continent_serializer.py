@@ -1,13 +1,13 @@
 from rest_framework import serializers
 from ..models import continents
-from ..serializers.country_serializer import countrySerializer
-
-
-
 
 class continentsSerializer(serializers.ModelSerializer):
-    # continent=countrySerializer(many=True,read_only=True)
-
     class Meta:
-        model=continents
-        fields="__all__"
+        model = continents
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if representation.get('overall_population') is None:
+            representation['overall_population'] = '0'
+        return representation

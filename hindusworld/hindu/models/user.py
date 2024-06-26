@@ -7,27 +7,30 @@ from django.utils import timezone
 from ..utils import send_email,generate_otp,validate_email,send_sms
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.contrib.auth.models import AbstractUser
 
 
 
 
-class Register(models.Model):
-    _id = models.CharField(db_column='_id', primary_key=True, max_length=45, default=uuid.uuid1, unique=True, editable=False) 
+
+class Register(AbstractUser):
+    id = models.CharField(db_column='id', primary_key=True, max_length=45, default=uuid.uuid1, unique=True, editable=False) 
     name = models.CharField(max_length=200)
     dob = models.DateField()
-    # gotram = models.CharField(max_length=200, blank=True) 
     verification_otp = models.CharField(max_length=6, null=True, blank=True)
     verification_otp_created_time = models.DateTimeField(null=True)
     verification_otp_resend_count = models.IntegerField(default=0)
     status = models.CharField(max_length=50,choices=[(e.name,e.value) for e in UserStatus],default=UserStatus.CREATED.value)
-    username = models.CharField(max_length=200, db_column='username')
-    password = models.CharField(max_length=200)
     forgot_password_otp = models.CharField(max_length=6, null=True, blank =True)
     forgot_password_otp_created_time = models.DateTimeField(null=True)
     forgot_password_otp_resend_count = models.IntegerField(default=0)
     
     class Meta:
         db_table = "profile"
+
+    def __str__(self):
+
+        return self.username
 
 @receiver(post_save, sender=Register)
 def send_email_or_sms_token(sender, instance, created, **kwargs):

@@ -9,36 +9,24 @@ class countrySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-# class countrySerializer1(serializers.ModelSerializer):
-#     continent = serializers.SerializerMethodField()
-#     # organization_count = serializers.SerializerMethodField()
-#     # continent = ContinentSerializer()
-
-#     def get_continent(self, instance):
-#         continent = instance.continent
-#         return {
-#             "name": continent.name
-#         }
-
-#     # def get_organization_count(self, instance):
-#     #     return organization.objects.filter(country=instance).count()
-
-#     class Meta:
-#         model = Country
-#         fields = "__all__"
 
 
 
 class CountrySerializer1(serializers.ModelSerializer):
-    image_location=serializers.SerializerMethodField()
+    image_location = serializers.SerializerMethodField()
+
     def get_image_location(self, instance):
-            filename = instance.image_location
-            print(filename,"yrtyh")
-            if filename:
-                format= image_path_to_binary(filename)
-                print(format,"******************")
-                return format
-            return None
+        filename = instance.image_location
+        if filename:
+            format = image_path_to_binary(filename)
+            return format
+        return None
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if representation.get('overall_population') is None:
+            representation['overall_population'] = '0'
+        return representation
     
     class Meta:
         model = Country

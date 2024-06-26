@@ -10,6 +10,7 @@ from ..pagination.orgbycountry_pagination import orgByCountryPagination
 from rest_framework.generics import ListAPIView
 from rest_framework import status
 from rest_framework import status as http_status
+from rest_framework.permissions import IsAuthenticated
 
 
 
@@ -43,6 +44,12 @@ class OrgnizationView(viewsets.ModelViewSet):
 
 class AddOrgnization(generics.GenericAPIView):
     serializer_class = OrgnisationSerializer1
+    permission_classes = []
+    
+    def get_permissions(self):
+        if self.request.method in ['POST', 'PUT', ]:
+            return [IsAuthenticated()]
+        return super().get_permissions()
 
     def post(self, request, *args, **kwargs):
         org_images = request.data.get('org_images')
@@ -78,6 +85,25 @@ class AddOrgnization(generics.GenericAPIView):
         }, status=status.HTTP_201_CREATED)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class GetItemByfield_InputView(generics.GenericAPIView):
     serializer_class = OrgnisationSerializer
     pagination_class = orgByCountryPagination
@@ -101,6 +127,59 @@ class GetItemByfield_InputView(generics.GenericAPIView):
                 'status': 404
             })
         
+
+
+
+
+
+
+class GetItemByfields_InputViews(generics.GenericAPIView):
+    serializer_class = OrgnisationSerializer
+    pagination_class = orgByCountryPagination
+
+    def get(self, request, input_value1, field_name1, input_value2=None, field_name2=None):
+        try:
+            field_names = [field.name for field in organization._meta.get_fields()]
+            filter_kwargs = {}
+
+
+            if field_name1 in field_names:
+                filter_kwargs[field_name1] = input_value1
+
+                
+            else:
+                return Response({
+                    'message': 'Invalid field name',
+                    'status': 400
+                })
+            if field_name2 and input_value2:
+                if field_name2 in field_names:
+                    filter_kwargs[field_name2] = input_value2
+
+                else:
+                    return Response({
+                        'message': f'Invalid field name: {field_name2}',
+                        'status': 400
+                    })
+                
+            queryset = organization.objects.filter(**filter_kwargs)
+            serialized_data = OrgnisationSerializer(queryset, many=True)
+            return Response(serialized_data.data)
+            
+        except organization.DoesNotExist:
+            return Response({
+                'message': 'Object not found',
+                'status': 404
+            })
+        
+
+
+
+
+
+
+
+
 
 
 
@@ -139,6 +218,9 @@ class GetOrgByStatus_Success(generics.GenericAPIView):
             'message': 'success',
             'result': serializer.data
         }) 
+
+
+
 
 class UpdateOrgStatus(generics.GenericAPIView):
     serializer_class = OrgnisationSerializer2

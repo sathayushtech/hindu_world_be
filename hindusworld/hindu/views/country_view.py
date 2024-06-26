@@ -80,12 +80,12 @@ class CountryView(viewsets.ModelViewSet):
 
 class CountsView(APIView):
     def get(self, request):
-        continent = continents.objects.all()
+        continent_list = continents.objects.all()
         
-        organization_count=organization.objects.all().count()
+        organization_count = organization.objects.all().count()
         continents_organization_count = []
         
-        for continent in continent:
+        for continent in continent_list:
             count = organization.objects.filter(country__continent=continent).count()
             continents_organization_count.append({
                 "continent_name": continent.name,
@@ -93,7 +93,7 @@ class CountsView(APIView):
             })
         
         return Response({
-            "Total Organizations Count":organization_count,
+            "Total Organizations Count": organization_count,
             "continents_organization_count": continents_organization_count,
             
         }, status=status.HTTP_200_OK)
