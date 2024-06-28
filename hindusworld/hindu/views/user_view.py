@@ -96,45 +96,122 @@ from django.contrib.auth import authenticate
 
 
 
+ 
+# class LoginApiView(generics.GenericAPIView):
+#     serializer_class = LoginSerializer
+
+#     def post(self, request, *args, **kwargs):
+#         data = request.data
+#         username = data.get('username')
+#         password = data.get('password')
+        
+#         user = authenticate(username=username, password=password)
+        
+#         if user is None:
+#             return Response({
+#                 'message': "Invalid username or password"
+#             }, status=status.HTTP_400_BAD_REQUEST)
+        
+#         # Check if the user is active
+#         if user.status != UserStatus.ACTIVE.value:
+#             return Response({
+#                 "error": "Verify account before login"
+#             }, status=status.HTTP_400_BAD_REQUEST)
+        
+#         refresh = RefreshToken.for_user(user)
+        
+#         return Response({
+#             'refresh': str(refresh),
+#             'access': str(refresh.access_token),
+#             'username': user.get_username(),
+#             'user_id': user.id
+#         }, status=status.HTTP_200_OK)       
+
+
+
+
+
 class LoginApiView(generics.GenericAPIView):
-    serializer_class=LoginSerializer
+    serializer_class = LoginSerializer
+
     def post(self, request, *args, **kwargs):
         data = request.data
-        username = data['username']
-        password = data['password']
-        
-        user = authenticate(username=username, password=password)
-        
-        if user is None:
+        username = data.get('username')
+        password = data.get('password')
+
+        try:
+            user = Register.objects.get(username=username)
+        except Register.DoesNotExist:
+            user = None
+
+        if user is None or not user.check_password(password):
             return Response({
-                'message':"Something went wrong"
+                'message': "Invalid username or password"
             }, status=status.HTTP_400_BAD_REQUEST)
-        
-   
-        
+
+        # Check if the user is active
+        if user.status != UserStatus.ACTIVE.value:
+            return Response({
+                "error": "Verify account before login"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         refresh = RefreshToken.for_user(user)
-        
+
         return Response({
             'refresh': str(refresh),
             'access': str(refresh.access_token),
             'username': user.get_username(),
-            'user_id': user.id            
+            'user_id': user.id
         }, status=status.HTTP_200_OK)
-        
-class Registerview(generics.GenericAPIView):
-    serializer_class=UserSerializer
-    def post(self, request, *args, **kwargs):
-        print("bgvfdsa")
-        data = request.data
-        serializer = UserSerializer(data=data)
-        print(serializer,"oiuhygt")
-        serializer.is_valid(raise_exception=True)  
-        serializer.save()
-        return Response({
-            'message': "Registration Successful, Please check the Email"
-        }, status=status.HTTP_201_CREATED)
+
+
+
+
+
+
+# class Registerview(generics.GenericAPIView):
+#     serializer_class=UserSerializer
+#     def post(self, request, *args, **kwargs):
+#         print("bgvfdsa")
+#         data = request.data
+#         serializer = UserSerializer(data=data)
+#         print(serializer,"oiuhygt")
+#         serializer.is_valid(raise_exception=True)  
+#         serializer.save()
+#         return Response({
+#             'message': "Registration Successful, Please check the account"
+#         }, status=status.HTTP_201_CREATED)
             
+
+
+
+
+
+class Registerview(generics.GenericAPIView):
+    serializer_class = UserSerializer
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
         
+        if Register.objects.filter(username=data.get('username')).exists():
+            return Response({
+                'message': "User already exists"
+            }, status=status.HTTP_409_CONFLICT)
+        
+        serializer = UserSerializer(data=data)
+        
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({
+                'message': "Registration Successful, Please check the account"
+            }, status=status.HTTP_201_CREATED)
+        
+        return Response({
+            'message': "Invalid data",
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
 
     
 class VerifyOtpView(generics.GenericAPIView):
@@ -170,7 +247,12 @@ class VerifyOtpView(generics.GenericAPIView):
             'message':'Something went Wrong',
             'data': 'Invalid OTP'
         })
-    
+
+
+
+
+
+
 class ResendOtp(generics.GenericAPIView):
     serializer_class = ResendOtpSerializer
 
@@ -209,7 +291,11 @@ class ResendOtp(generics.GenericAPIView):
                 "status":200,
                 "message":"invalid otp"
             })
-        
+
+
+
+
+
 class ForgotOtp(generics.GenericAPIView):
     serializer_class = ResendOtpSerializer
 
@@ -241,7 +327,11 @@ class ForgotOtp(generics.GenericAPIView):
                 "status":200,
                 "message":"otp sent succesfully, please check your mobile number"
             })
-        
+
+
+
+
+
 class ResetPassword(generics.GenericAPIView):
     serializer_class = ResetSerializer
     
