@@ -1,13 +1,17 @@
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import OrgnizationView,CountryView,GetItemByfield_InputView,continentsView,AddOrgnization,CountsView,countries_by_Continent,GetOrgByStatus_Pending,GetOrgByStatus_Success,UpdateOrgStatus,Registerview,LoginApiView,GetItemByfields_InputViews,ResetPassword,ForgotOtp,ResendOtp,VerifyOtpView
+from .views import OrgnizationView,CountryVIews,GetItemByfield_InputView,continentsView,AddOrgnization,GetOrgByStatus_Pending,GetOrgByStatus_Success,UpdateOrgStatus,Registerview,LoginApiView,GetItemByfields_InputViews,ResetPassword,ForgotOtp,ResendOtp,VerifyOtpView,BlockView,GetVillages,VillageView,DistrictVIew,StateViews,GetbyCountryLocationorganization,GetbyDistrictLocationOrganization,GetbyBlockLocationOrganization,GetItemBystatefield_location
 
 router=DefaultRouter()
 router.register(r'organizations',OrgnizationView)
-router.register(r'countries',CountryView)
+router.register(r'countries',CountryVIews)
 router.register(r'continents',continentsView)
-# router.register(r'Registerview',Registerview)
+router.register(r'state',StateViews)
+router.register(r"district",DistrictVIew)
+router.register(r"block",BlockView)
+router.register(r"village",VillageView)
+router.register(r"allvillages",GetVillages, basename="allvillages_extra")
 
 
 urlpatterns=[
@@ -22,16 +26,20 @@ urlpatterns=[
     path('get_org_by_success',GetOrgByStatus_Success.as_view()),
   
     # path('count/<str:country_id>',CountsView.as_view()),
-    path('count/',CountsView.as_view()),
+    # path('count/',CountsView.as_view()),
     # path('continents/<str:pk>',continentsView.as_view())
-    path('get-countriesBycontinent/<str:continent>', countries_by_Continent.as_view(), name='get-items-by-field'),
+    # path('get-countriesBycontinent/<str:continent>', countries_by_Continent.as_view(), name='get-items-by-field'),
     path('register',Registerview.as_view()),
     path('Login/',LoginApiView.as_view()),
     path('VerifyOtp/',VerifyOtpView.as_view()),
     path('ResendOtp',ResendOtp.as_view()),
     path('ForgotOtp',ForgotOtp.as_view()),
     path('ResetPassword',ResetPassword.as_view()),
-    path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),  
+    path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
+    path('organization/state_id/<str:state_id>/', GetItemBystatefield_location.as_view()),
+    path('organization/district_id/<str:district_id>/', GetbyBlockLocationOrganization.as_view()),
+    path('organization/block_id/<str:block_id>/', GetbyDistrictLocationOrganization.as_view()),
+    path('organization/country_id/<str:country_id>/',GetbyCountryLocationorganization.as_view()),  
 
 
 

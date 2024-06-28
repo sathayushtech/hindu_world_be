@@ -12,22 +12,22 @@ class countrySerializer(serializers.ModelSerializer):
 
 
 
-class CountrySerializer1(serializers.ModelSerializer):
-    image_location = serializers.SerializerMethodField()
+# class CountrySerializer1(serializers.ModelSerializer):
+#     image_location = serializers.SerializerMethodField()
 
-    def get_image_location(self, instance):
-        filename = instance.image_location
-        if filename:
-            format = image_path_to_binary(filename)
-            return format
-        return None
+#     def get_image_location(self, instance):
+#         filename = instance.image_location
+#         if filename:
+#             format = image_path_to_binary(filename)
+#             return format
+#         return None
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if representation.get('overall_population') is None:
-            representation['overall_population'] = '0'
-        return representation
+#     def to_representation(self, instance):
+#         representation = super().to_representation(instance)
+#         if representation.get('overall_population') is None:
+#             representation['overall_population'] = '0'
+#         return representation
     
-    class Meta:
-        model = Country
-        fields = "__all__"
+#     class Meta:
+#         model = Country
+#         fields = "__all__"

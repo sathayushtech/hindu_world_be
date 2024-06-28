@@ -2,6 +2,9 @@ from rest_framework import serializers
 from ..models import organization
 from ..utils import image_path_to_binary
 
+
+
+
 class OrgnisationSerializer(serializers.ModelSerializer):
     org_images=serializers.SerializerMethodField()
     org_logo=serializers.SerializerMethodField()

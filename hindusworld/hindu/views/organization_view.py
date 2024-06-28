@@ -103,7 +103,6 @@ class AddOrgnization(generics.GenericAPIView):
 
 
 
-
 class GetItemByfield_InputView(generics.GenericAPIView):
     serializer_class = OrgnisationSerializer
     pagination_class = orgByCountryPagination
@@ -244,6 +243,73 @@ class UpdateOrgStatus(generics.GenericAPIView):
             'message': 'success',
             'result': serializer.data
         })
+
+
+
+
+
+
+
+
+
+
+
+
+class GetbyCountryLocationorganization(generics.ListAPIView):
+    serializer_class = OrgnisationSerializer
+
+    def get_queryset(self):
+        country_id = self.kwargs.get('country_id')
+        organization_in_country = organization.objects.filter(
+            object_id__block__district__state__country_id=country_id
+        )
+        return organization_in_country
+
+
+  
+
+
+
+
+
+
+
+
+class GetItemBystatefield_location(generics.ListAPIView):
+    serializer_class = OrgnisationSerializer
+
+    def get_queryset(self):
+        state_id = self.kwargs.get('state_id')
+        organizations_in_state = organization.objects.filter(object_id__block__district__state_id=state_id)
+        return organizations_in_state
+    
+
+
+class GetbyDistrictLocationOrganization(generics.ListAPIView):
+    serializer_class = OrgnisationSerializer
+
+    def get_queryset(self):
+        district_id =self.kwargs.get('district_id')
+        organizations_in_district = organization.objects.filter(object_id__block__district_id=district_id)
+        return organizations_in_district
+    
+
+
+    
+class GetbyBlockLocationOrganization(generics.ListAPIView):
+    serializer_class = OrgnisationSerializer
+
+    def get_queryset(self):
+        block_id = self.kwargs.get('block_id')
+        organizations_in_district = organization.objects.filter(object_id__block_id=block_id)
+        return organizations_in_district
+
+
+
+
+
+
+
 
 
 
