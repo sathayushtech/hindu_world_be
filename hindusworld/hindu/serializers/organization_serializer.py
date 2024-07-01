@@ -1,6 +1,9 @@
 from rest_framework import serializers
-from ..models import organization
+from ..models import Organization
 from ..utils import image_path_to_binary
+
+
+
 
 class OrgnisationSerializer(serializers.ModelSerializer):
     org_images=serializers.SerializerMethodField()
@@ -42,7 +45,7 @@ class OrgnisationSerializer(serializers.ModelSerializer):
 
        
     class Meta:
-        model = organization
+        model = Organization
         fields = "__all__"
 
 
@@ -60,7 +63,7 @@ class OrgnisationSerializer(serializers.ModelSerializer):
 class OrgnisationSerializer1(serializers.ModelSerializer):
     
     class Meta:
-        model = organization
+        model = Organization
         fields = "__all__"
 
 
@@ -68,5 +71,11 @@ class OrgnisationSerializer1(serializers.ModelSerializer):
 class OrgnisationSerializer2(serializers.ModelSerializer):
     
     class Meta:
-        model = organization
+        model = Organization
         fields = ['status']        
+
+
+class OrganizationSerializer3(serializers.ModelSerializer):
+ 
+    image_location = serializers.SerializerMethodField()
+    # object_id=serializers.SerializerMethodField()

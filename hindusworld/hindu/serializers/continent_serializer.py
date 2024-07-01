@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from ..models import continents
+from ..models import Continent
 
 class continentsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = continents
+        model = Continent
         fields = "__all__"
 
     def to_representation(self, instance):
