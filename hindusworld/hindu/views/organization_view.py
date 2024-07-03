@@ -2,9 +2,9 @@ from django.shortcuts import render
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from ..models import Organization, Country,Continent,Village
+from ..models import Organization, Country,Continent,Village,Register
 from ..serializers.organization_serializer import OrgnisationSerializer,OrgnisationSerializer1,OrgnisationSerializer2,OrganizationSerializer3
-from ..utils import save_image_to_folder
+from ..utils import save_image_to_folder,save_logo_to_folder
 from ..pagination.org_pagination import OrganizationPagination
 from ..pagination.orgbycountry_pagination import orgByCountryPagination
 from rest_framework.generics import ListAPIView
@@ -25,50 +25,153 @@ class OrgnizationView(viewsets.ModelViewSet):
 
 
 
+##############   single image for AddOrgnization #########################
+
+# class AddOrgnization(generics.GenericAPIView):
+#     serializer_class = OrgnisationSerializer1
+#     permission_classes = []
+    
+#     def get_permissions(self):
+#         if self.request.method in ['POST', 'PUT', ]:
+#             return [IsAuthenticated()]
+#         return super().get_permissions()
+
+#     def post(self, request, *args, **kwargs):
+#         org_images = request.data.get('org_images')
+#         org_logo = request.data.get('org_logo')
+#         print(org_images, "vfvfv")
+#         print(org_logo, "vqqqqfvfv")
+
+#         # Temporarily set these fields to "null" for initial validation and saving
+#         request.data['org_images'] = "[ ]"
+#         request.data['org_logo'] = "None"
+
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         serializer.save()
+
+#         if org_images and org_images != "null":
+#             saved_location = save_image_to_folder(org_images, serializer.instance._id, serializer.instance.organization_name)
+#             if saved_location:
+#                 serializer.instance.org_images = saved_location
+#                 print(serializer.instance.org_images, "referg")
+
+#         if org_logo and org_logo != "null":
+#             saved_logo_location = save_logo_to_folder(org_logo, serializer.instance._id, serializer.instance.organization_name)
+#             if saved_logo_location:
+#                 serializer.instance.org_logo = saved_logo_location
+#                 print(serializer.instance.org_logo, "referg")
+
+#         serializer.instance.save()
+
+#         return Response({
+#             "message": "success",
+#             "result": serializer.data
+#         }, status=status.HTTP_201_CREATED)
+
+
+####################  AddOrgnization as per single register and login ########################
 class AddOrgnization(generics.GenericAPIView):
     serializer_class = OrgnisationSerializer1
-    permission_classes = []
-    
-    def get_permissions(self):
-        if self.request.method in ['POST', 'PUT', ]:
-            return [IsAuthenticated()]
-        return super().get_permissions()
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        org_images = request.data.get('org_images')
-        org_logo = request.data.get('org_logo')
-        print(org_images, "vfvfv")
-        print(org_logo, "vqqqqfvfv")
+        try:
+            # Fetch the Register instance for the logged-in user using some identifier
+            username = request.user.username  # Example: Using username
+            print(f"Username: {username}")
+            register_instance = Register.objects.get(username=username)
+            is_member = register_instance.is_member
+            print(f"is_member: {is_member}")
 
-        # Temporarily set these fields to "null" for initial validation and saving
-        request.data['org_images'] = "[ ]"
-        request.data['org_logo'] = "None"
+            # Check if the user is a member
+            if is_member == "FALSE":
+                print("User is not a member")
+                return Response({
+                    "message": "Cannot create organization. Membership details are required. Update your profile and become a member."
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Proceed with organization creation
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            
+            # Handle organization images and logo if provided
+            org_images = request.data.get('org_images')
+            org_logo = request.data.get('org_logo')
 
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+            if org_images and org_images != "null":
+                saved_location = save_image_to_folder(org_images, serializer.instance._id, serializer.instance.organization_name)
+                if saved_location:
+                    serializer.instance.org_images = saved_location
 
-        if org_images and org_images != "null":
-            saved_location = save_image_to_folder(org_images, serializer.instance._id, serializer.instance.organization_name)
-            if saved_location:
-                serializer.instance.org_images = saved_location
-                print(serializer.instance.org_images, "referg")
+            if org_logo and org_logo != "null":
+                saved_logo_location = save_logo_to_folder(org_logo, serializer.instance._id, serializer.instance.organization_name)
+                if saved_logo_location:
+                    serializer.instance.org_logo = saved_logo_location
 
-        if org_logo and org_logo != "null":
-            saved_logo_location = save_image_to_folder(org_logo, serializer.instance._id, serializer.instance.organization_name)
-            if saved_logo_location:
-                serializer.instance.org_logo = saved_logo_location
-                print(serializer.instance.org_logo, "referg")
+            serializer.instance.save()
 
-        serializer.instance.save()
+            return Response({
+                "message": "Organization created successfully.",
+                "result": serializer.data
+            }, status=status.HTTP_201_CREATED)
 
-        return Response({
-            "message": "success",
-            "result": serializer.data
-        }, status=status.HTTP_201_CREATED)
+        except Register.DoesNotExist:
+            return Response({
+                "message": "User not found."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return Response({
+                "message": "An error occurred.",
+                "error": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+###############changes need to be done for uploading more than one image################
+# class AddOrgnization(generics.CreateAPIView):
+#     serializer_class = OrgnisationSerializer1
 
+#     permission_classes = []
+    
+#     def get_permissions(self):
+#         if self.request.method in ['POST', 'PUT', ]:
+#             return [IsAuthenticated()]
+#         return super().get_permissions()
+
+#     def create(self, request, *args, **kwargs):
+#         images = request.data.get('org_images', [])
+#         images = request.data.get('org_logo', [])
+        
+#         # Temporarily remove images from request data to avoid validation errors
+#         request.data['org_images'] = []
+#         request.data['org_logo'] = []
+
+#         # Serialize data and save temple
+#         serializer = self.get_serializer(data=request.data)
+#         print(serializer,"sssssssssssssssssssss")
+#         serializer.is_valid(raise_exception=True)
+#         serializer.save()
+
+#         saved_image_paths = []
+#         print(saved_image_paths,"iiiiiiiiiiiiiiii")
+#         for image_data in images:
+#             if image_data:
+#                 saved_location = save_image_to_folder(image_data, serializer.instance._id, serializer.instance.name)
+#                 print(saved_location)
+#                 if saved_location:
+#                     saved_image_paths.append(saved_location)
+
+#         if saved_image_paths:
+#             serializer.instance.image_location = saved_image_paths
+#             serializer.instance.save()
+
+#         return Response({
+#             "message": "success",
+#             "result": serializer.data
+#         })
 
 
 from rest_framework.pagination import PageNumberPagination

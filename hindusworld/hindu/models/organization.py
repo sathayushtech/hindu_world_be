@@ -62,7 +62,7 @@ class Organization(models.Model):
         ]
     )
     web_url = models.URLField(
-        validators=[
+        validators=[ 
             URLValidator(message="Invalid URL format")
         ]
     )
@@ -83,6 +83,8 @@ class Organization(models.Model):
             MinLengthValidator(1, "Organization images cannot be empty")
         ]
     )
+    # org_images = models.JSONField(default=list, blank=True)
+    # org_logo = models.JSONField(default=list, blank=True)
     org_logo = models.TextField(null=True,blank=True)
     status=models.CharField(max_length=50,choices=[(e.name,e.value) for e in status],default=status.PENDING.value)
     geo_site = models.CharField(max_length=50, choices=[(e.name, e.value) for e in GeoSite], default=GeoSite.VILLAGE.value)

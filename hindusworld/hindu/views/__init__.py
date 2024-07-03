@@ -6,4 +6,6 @@ from .state_view import StateViews
 from .district_view import DistrictVIew
 from .block_view import BlockView
 from .village_view import VillageView,GetVillages
-from .user_view import Registerview,LoginApiView,VerifyOtpView,ResendOtp,ForgotOtp,ResetPassword
+# from .user_view import Registerview,LoginApiView,VerifyOtpView,ResendOtp,ForgotOtp,ResetPassword
+from .user_view import Register_LoginView,Validate_LoginOTPView,ResendOTPView,MemberDetailsViews,UpdateMemberDetails
+

@@ -6,6 +6,7 @@ import string
 import requests
 import base64
 import os
+import uuid
 from rest_framework.pagination import PageNumberPagination
 
 
@@ -35,12 +36,14 @@ def image_path_to_binary(filename):
         # print("File not found:", img_path)
         return None
     
+
+    ############## single image##########
 def save_image_to_folder(org_images, _id,name):
     image_data = base64.b64decode(org_images)
     folder_name = str(_id)
     img_url = settings.FILE_URL
 
-    folder_path = os.path.join(img_url,"organization", folder_name)
+    folder_path = os.path.join(img_url,"hinduworldimages", folder_name)
     print(folder_path,"11122223333")
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
@@ -49,6 +52,47 @@ def save_image_to_folder(org_images, _id,name):
     with open(image_path, "wb") as image_file:
         image_file.write(image_data)
     return image_path
+
+
+
+def save_logo_to_folder(org_images, _id,name):
+    image_data = base64.b64decode(org_images)
+    folder_name = str(_id)
+    img_url = settings.FILE_URL
+
+    folder_path = os.path.join(img_url,"hinduworldlogos", folder_name)
+    print(folder_path,"11122223333")
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    image_name = name+".jpg"
+    image_path = os.path.join(folder_path, image_name)
+    with open(image_path, "wb") as image_file:
+        image_file.write(image_data)
+    return image_path
+
+
+def save_profile_image_to_folder(org_images, _id,name):
+    image_data = base64.b64decode(org_images)
+    folder_name = str(_id)
+    img_url = settings.FILE_URL
+
+    folder_path = os.path.join(img_url,"profile_pic", folder_name)
+    print(folder_path,"11122223333")
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    image_name = name+".jpg"
+    image_path = os.path.join(folder_path, image_name)
+    with open(image_path, "wb") as image_file:
+        image_file.write(image_data)
+    return image_path
+
+
+
+
+
+
+
+
 
 
 
