@@ -6,7 +6,7 @@ from ..utils import image_path_to_binary
 class Register_LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = Register
-        fields =["username","full_name"]
+        fields =["username"]
       
 
 class Verify_LoginSerializer(serializers.ModelSerializer):

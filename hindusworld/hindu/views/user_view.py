@@ -11,42 +11,46 @@ from django.contrib.auth import authenticate
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from ..utils import save_profile_image_to_folder
+from datetime import datetime
 
-
-    
+     
+     
 
 class Register_LoginView(generics.GenericAPIView):
     serializer_class = Register_LoginSerializer
 
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
-        full_name = request.data.get('full_name')
-        # print(username,"oooooooooooooooooooooo")
         
         if not username:
             return Response({"error": "username is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        if not full_name:
-            return Response({"error": "full_name is required"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Check if the username already exists
-        if Register.objects.using('login_db').filter(username=username).exists():
-            return Response({"error": "username already exists"}, status=status.HTTP_400_BAD_REQUEST)
-       
-        # Create or get the Register object and generate OTP
-        otp, created = Register.objects.using('login_db').get_or_create(username=username, full_name=full_name)
-        otp = generate_otp()
-        # otp_new = otp.generate_otp()
+        try:
+            user = Register.objects.using('login_db').get(username=username)
+            print(user)
+            # Username already exists, update OTP
+            otp = generate_otp()
+            print(otp)
+            user.verification_otp = otp
+            user.verification_otp_created_time = timezone.now()
+            user.save(using='login_db')
+            message = "Login successful and OTP sent successfully"
+        except Register.DoesNotExist:
+            # Username does not exist, create new user and set OTP
+            otp = generate_otp()
+            
+            user = Register.objects.using('login_db').create(username=username, verification_otp=otp, verification_otp_created_time=timezone.now())
+            user.save()
+            message = "OTP sent successfully"
         
         # Send OTP via SMS
         self.send_sms(username, otp)
         
-        return Response({"otp": "Registration Successfull and otp sent successfully "}, status=status.HTTP_200_OK)
+        return Response({"otp": message}, status=status.HTTP_200_OK)
 
     def send_sms(self, phone_number, otp):
         # Implement your SMS sending logic here
-        pass
-
+        send_sms(phone_number, otp)
   
 # class Validate_LoginOTPView(generics.GenericAPIView):
 #     serializer_class = Verify_LoginSerializer
