@@ -6,7 +6,7 @@ from rest_framework .views import APIView,status
 from rest_framework .response import Response
 from ..enums.user_status_enum import UserStatus
 from rest_framework_simplejwt.tokens import RefreshToken
-from ..utils import validate_email,send_email,send_sms,Resend_sms,generate_otp
+from ..utils import validate_email,send_email,send_sms,generate_otp,Resend_sms
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
@@ -30,28 +30,36 @@ class Register_LoginView(generics.GenericAPIView):
             print(user)
             # Username already exists, update OTP
             otp = generate_otp()
-            print(otp)
+            print(otp,"1111111111")
+
             user.verification_otp = otp
             user.verification_otp_created_time = timezone.now()
             user.save(using='login_db')
+            self.send_sms(username, otp)
+            print(otp,'000000000000000000')
             message = "Login successful and OTP sent successfully"
         except Register.DoesNotExist:
             # Username does not exist, create new user and set OTP
             otp = generate_otp()
+            print(otp,"222222222222222222222222")
             
             user = Register.objects.using('login_db').create(username=username, verification_otp=otp, verification_otp_created_time=timezone.now())
-            user.save()
+            user.save(using='login_db')
+          
+            print(otp,'3333333333333333333')
+            send_sms(username, otp)
+            # user.save()
+            print(otp,'44444444444444')
             message = "OTP sent successfully"
+
+
+            
         
-        # Send OTP via SMS
-        self.send_sms(username, otp)
+        
         
         return Response({"otp": message}, status=status.HTTP_200_OK)
 
-    def send_sms(self, phone_number, otp):
-        # Implement your SMS sending logic here
-        send_sms(phone_number, otp)
-  
+    
 # class Validate_LoginOTPView(generics.GenericAPIView):
 #     serializer_class = Verify_LoginSerializer
 #     def post(self, request, *args, **kwargs):

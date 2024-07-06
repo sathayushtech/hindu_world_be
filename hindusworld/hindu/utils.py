@@ -146,7 +146,7 @@ def send_sms(username, otp):
     print(url)  
     response = requests.get(url)
     print(response.text) 
-    print("Sent Mobile OTP")
+    print("Sent Mobile OTP",username,otp,"ssssssssssssssssssssssssss")
 
 
 def Resend_sms(username, otp):
@@ -157,4 +157,4 @@ def Resend_sms(username, otp):
     print(url)  
     response = requests.get(url)
     print(response.text) 
-    print("Sent Mobile OTP")
+    print("Sent Mobile OTP",username,otp,"rrrrrrrrrrrrrrrrrrrrr")

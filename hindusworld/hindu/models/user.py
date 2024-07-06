@@ -41,22 +41,22 @@ class Register(AbstractUser):
     
 
 
-@receiver(post_save, sender=Register)
-def send_email_or_sms_token(sender, instance, created, **kwargs):
-    if created:
-        try:
-            username = instance.username
-            if validate_email(username):
-                otp = generate_otp()
-                instance.verification_otp = otp
-                instance.verification_otp_created_time = timezone.now()
-                instance.save()
-                send_email(username, otp)
-            else:
-                otp = generate_otp()
-                instance.verification_otp = otp
-                instance.verification_otp_created_time = timezone.now()
-                instance.save()
-                send_sms(username, otp)
-        except Exception as e:
-            print(f"An error occurred while sending verification token: {e}")
+# @receiver(post_save, sender=Register)
+# def send_email_or_sms_token(sender, instance, created, **kwargs):
+#     if created:
+#         try:
+#             username = instance.username
+#             if validate_email(username):
+#                 otp = generate_otp()
+#                 instance.verification_otp = otp
+#                 instance.verification_otp_created_time = timezone.now()
+#                 instance.save()
+#                 send_email(username, otp)
+#             else:
+#                 otp = generate_otp()
+#                 instance.verification_otp = otp
+#                 instance.verification_otp_created_time = timezone.now()
+#                 instance.save()
+#                 send_sms(username, otp)
+#         except Exception as e:
+#             print(f"An error occurred while sending verification token: {e}")
