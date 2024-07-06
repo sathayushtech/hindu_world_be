@@ -2,14 +2,14 @@ from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 # from .views import OrgnizationView,CountryVIews,GetItemByfield_InputView,continentsView,AddOrgnization,GetOrgByStatus_Pending,GetOrgByStatus_Success,UpdateOrgStatus,Registerview,LoginApiView,GetItemByfields_InputViews,ResetPassword,ForgotOtp,ResendOtp,VerifyOtpView,BlockView,GetVillages,VillageView,DistrictVIew,StateViews,GetbyCountryLocationorganization,GetbyDistrictLocationOrganization,GetbyBlockLocationOrganization,GetItemBystatefield_location,GetIndianOrganizations,GetGlobalOrganizations
-from .views import OrgnizationView,CountryVIews,GetItemByfield_InputView,continentsView,AddOrgnization,GetOrgByStatus_Pending,GetOrgByStatus_Success,UpdateOrgStatus,Register_LoginView,Validate_LoginOTPView,GetItemByfields_InputViews,MemberDetailsViews,UpdateMemberDetails,ResendOTPView,BlockView,GetVillages,VillageView,DistrictVIew,StateViews,GetIndianOrganizations,GetGlobalOrganizations,GetOrgbyroot_map
+from .views import OrgnizationView,CountsView,countries_by_Continent,CountryView,GetItemByfield_InputView,continentsView,AddOrgnization,GetOrgByStatus_Pending,GetOrgByStatus_Success,UpdateOrgStatus,Register_LoginView,Validate_LoginOTPView,GetItemByfields_InputViews,MemberDetailsViews,UpdateMemberDetails,ResendOTPView,BlockView,GetVillages,VillageView,DistrictVIew,StateViews,GetIndianOrganizations,GetGlobalOrganizations,GetOrgbyroot_map
 
 
 
 
 router=DefaultRouter()
 router.register(r'organizations',OrgnizationView)
-router.register(r'countries',CountryVIews)
+router.register(r'countries',CountryView)
 router.register(r'continents',continentsView)
 router.register(r'state',StateViews)  
 router.register(r"district",DistrictVIew)
@@ -28,15 +28,15 @@ urlpatterns=[
     
     path('get_org_by_pending',GetOrgByStatus_Pending.as_view()),
     path('get_org_by_success',GetOrgByStatus_Success.as_view()),
-    path('indian_org',GetIndianOrganizations.as_view()),
-    path('international_org',GetGlobalOrganizations.as_view()),
+    # path('indian_org',GetIndianOrganizations.as_view()),
+    # path('international_org',GetGlobalOrganizations.as_view()),
     path('root_map_org/<str:input_value>/',GetOrgbyroot_map.as_view()),
     # path('root_map_org/<str:field_name>/<str:input_value>', GetOrgbyroot_map.as_view()),
   
     # path('count/<str:country_id>',CountsView.as_view()),
-    # path('count/',CountsView.as_view()),
+    path('count/',CountsView.as_view()),
     # path('continents/<str:pk>',continentsView.as_view())
-    # path('get-countriesBycontinent/<str:continent>', countries_by_Continent.as_view(), name='get-items-by-field'),
+    path('get-countriesBycontinent/<str:continent>', countries_by_Continent.as_view(), name='get-items-by-field'),
     # path('register',Registerview.as_view()),
     # path('Login/',LoginApiView.as_view()),
     # path('VerifyOtp/',VerifyOtpView.as_view()),
