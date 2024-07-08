@@ -12,7 +12,6 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from ..utils import save_profile_image_to_folder
 from datetime import datetime
-import re
 
      
      
@@ -52,41 +51,10 @@ class Register_LoginView(generics.GenericAPIView):
             # user.save()
             print(otp,'44444444444444')
             message = "OTP sent successfully"
-
-
-        if self.is_email(username):
-            validation_error = self.send_email(username, otp)
-        else:
-            validation_error = self.validate_phone_number(username)
-        if validation_error:
-            return Response({"error": validation_error}, status=status.HTTP_400_BAD_REQUEST)
-        if self.is_email(username):
-            self.send_email(username, otp)
-        else:
-            self.send_sms(username, otp)
-        return Response({"message": message}, status=status.HTTP_200_OK)
-    def is_email(self, username):
-        return re.match(r"[^@]+@gmail\.com$", username)
-    def validate_phone_number(self, phone_number):
-        if not re.match(r"^\d{10}$", phone_number):
-            return "Invalid username format. Must be either a valid email or a 10-digit phone number."
-        return None
-    
-    def send_email(self, email, otp):
-        subject = "Your OTP Code"
-        message = f"Dear user, your OTP to verify your Gramadevata User account is {otp}. Thank You! team Sathayush."
-        from_email = settings.EMAIL_HOST_USER
-        recipient_list = [email]
-        try:
-            send_email(subject, message, from_email, recipient_list)
-            print("Sent Email OTP")
-        except Exception as e:
-            print(f"Failed to send email: {e}")
-
         
         
         
-        # return Response({"otp": message}, status=status.HTTP_200_OK)
+        return Response({"otp": message}, status=status.HTTP_200_OK)
 
     
 # class Validate_LoginOTPView(generics.GenericAPIView):
