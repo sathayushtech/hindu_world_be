@@ -22,7 +22,7 @@ class Organization(models.Model):
     est_by = models.CharField(
         max_length=100,
         validators=[
-            MaxLengthValidator(100),
+            MaxLengthValidator(500),
             MinLengthValidator(1, "Establisher name cannot be empty")
         ]
     )

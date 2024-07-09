@@ -35,7 +35,7 @@ class Register_LoginView(generics.GenericAPIView):
             user.verification_otp = otp
             user.verification_otp_created_time = timezone.now()
             user.save(using='login_db')
-            self.send_sms(username, otp)
+            send_sms(username, otp)
             print(otp,'000000000000000000')
             message = "Login successful and OTP sent successfully"
         except Register.DoesNotExist:
@@ -327,38 +327,6 @@ class ForgotOtp(generics.GenericAPIView):
                 "message":"otp sent succesfully, please check your mobile number"
             })
         
-# class ResetPassword(generics.GenericAPIView):
-#     serializer_class = ResetSerializer
-    
 
-#     def put(self,request):
-#         otp = request.data["forgot_password_otp"]
-#         password = request.data["password"]
-
-#         if not otp or not password:
-#             return Response({
-#                 "status":400,
-#                 "message":"required otp and resetpassword"
-#             })
-#         try:
-#             user=Register.objects.using('login_db').get(forgot_password_otp=otp)
-#         except Register.DoesNotExist:
-#             return Response({
-#                 "status":400,
-#                 "message":"invalid otp, please enter valid otp"
-#             })
-#         if user.password==password:
-#             return Response({
-#                 "status": 400,
-#                 "message": "New password should not be the same as the old password."
-#             })
-#         else:
-#             user.forgot_password_otp=None
-#             user.password=password
-#             user.save()
-#             return Response({
-#                 "status":200,
-#                 "message":"reset password succesfully"
-#             })
 
         
