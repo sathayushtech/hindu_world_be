@@ -12,8 +12,8 @@ class Country(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     continent=models.ForeignKey(Continent,db_column="continent_id",on_delete=models.CASCADE)
     image_location = models.TextField(db_column='image_location') 
-    hindu_population=models.CharField(db_column='hindu_population',max_length=10000)
-    overall_population=models.CharField(db_column='overall_population',max_length=10000000)
+    hindu_population=models.CharField(db_column='hindu_population',max_length=100000000000000)
+    overall_population=models.CharField(db_column='overall_population',max_length=100000000000)
 
 
 

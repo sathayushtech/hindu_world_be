@@ -15,6 +15,10 @@ import uuid
 from ..location_tree import get_location_hierarchy
 from rest_framework.exceptions import ValidationError
 from django.db.models import Q
+from django.core.mail import send_mail
+from django.conf import settings
+from datetime import datetime
+
 
 
 
@@ -91,6 +95,9 @@ class AddOrgnization(generics.GenericAPIView):
                     "message": "Cannot create organization. Membership details are required. Update your profile and become a member."
                 }, status=status.HTTP_400_BAD_REQUEST)
             
+            # Capture the current time
+            created_at = datetime.now()
+
             # Proceed with organization creation
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
@@ -112,6 +119,20 @@ class AddOrgnization(generics.GenericAPIView):
 
             serializer.instance.save()
 
+            # Send email to EMAIL_HOST_USER
+            send_mail(
+                'New Organization Created',
+                f'User ID: {request.user.id}\n'
+                f'Contact Number: {register_instance.contact_number}\n'
+                f'full Name: {request.user.full_name}\n'
+                f'Created Time: {created_at.strftime("%Y-%m-%d %H:%M:%S")}\n'
+                f'Organization ID: {serializer.instance._id}\n'
+                f'Organization Name: {serializer.instance.organization_name}',
+                settings.EMAIL_HOST_USER,
+                [settings.EMAIL_HOST_USER],
+                fail_silently=False,
+            )
+
             return Response({
                 "message": "Organization created successfully.",
                 "result": serializer.data
@@ -128,6 +149,10 @@ class AddOrgnization(generics.GenericAPIView):
                 "message": "An error occurred.",
                 "error": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
 
 
 ###############changes need to be done for uploading more than one image################

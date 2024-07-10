@@ -6,7 +6,7 @@ from rest_framework .views import APIView,status
 from rest_framework .response import Response
 from ..enums.user_status_enum import UserStatus
 from rest_framework_simplejwt.tokens import RefreshToken
-from ..utils import validate_email,send_email,send_sms,generate_otp,Resend_sms
+from ..utils import validate_email,send_email,send_sms,generate_otp,Resend_sms,send_welcome_email
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
@@ -14,8 +14,6 @@ from ..utils import save_profile_image_to_folder
 from datetime import datetime
 
      
-     
-
 class Register_LoginView(generics.GenericAPIView):
     serializer_class = Register_LoginSerializer
 
@@ -24,39 +22,34 @@ class Register_LoginView(generics.GenericAPIView):
         
         if not username:
             return Response({"error": "username is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp = generate_otp()
+        message = ""
         
         try:
             user = Register.objects.using('login_db').get(username=username)
-            print(user)
             # Username already exists, update OTP
-            otp = generate_otp()
-            print(otp,"1111111111")
-
             user.verification_otp = otp
             user.verification_otp_created_time = timezone.now()
             user.save(using='login_db')
-            self.send_sms(username, otp)
-            print(otp,'000000000000000000')
             message = "Login successful and OTP sent successfully"
         except Register.DoesNotExist:
             # Username does not exist, create new user and set OTP
-            otp = generate_otp()
-            print(otp,"222222222222222222222222")
-            
             user = Register.objects.using('login_db').create(username=username, verification_otp=otp, verification_otp_created_time=timezone.now())
             user.save(using='login_db')
-          
-            print(otp,'3333333333333333333')
-            send_sms(username, otp)
-            # user.save()
-            print(otp,'44444444444444')
             message = "OTP sent successfully"
-        
-        
-        
+
+        # Determine if username is an email or phone number
+        if validate_email(username):
+            send_email(username, otp)
+        else:
+            send_sms(username, otp)
+
         return Response({"otp": message}, status=status.HTTP_200_OK)
 
-    
+
+
+
 # class Validate_LoginOTPView(generics.GenericAPIView):
 #     serializer_class = Verify_LoginSerializer
 #     def post(self, request, *args, **kwargs):
@@ -91,25 +84,19 @@ class Validate_LoginOTPView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         verification_otp = request.data.get('verification_otp')
-        
         try:
             user = Register.objects.using('login_db').get(username=username)
         except Register.DoesNotExist:
             return Response({"error": "Invalid username"}, status=status.HTTP_400_BAD_REQUEST)
-        
         if user.verification_otp != verification_otp:
             return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
-
         if user.verification_otp_created_time < timezone.now() - timezone.timedelta(hours=24):
             return Response({"error": "OTP expired"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Update user status to ACTIVE
         user.status = 'ACTIVE'
         user.save(using='login_db')
-        
+        send_welcome_email(username)
         refresh = RefreshToken.for_user(user)
         access_token = refresh.access_token
-        
         return Response({
             'refresh': str(refresh),
             'access': str(access_token),
@@ -117,27 +104,26 @@ class Validate_LoginOTPView(generics.GenericAPIView):
             'user_id': user.id
         }, status=status.HTTP_200_OK)
 
+# class ResendOTPView(generics.GenericAPIView):
+#     serializer_class = ResendOtpSerializer
 
-class ResendOTPView(generics.GenericAPIView):
-    serializer_class = ResendOtpSerializer
-
-    def post(self, request, *args, **kwargs):
-        username = request.data.get('username')
-        if not username:
-            return Response({"error": "username is required"}, status=status.HTTP_400_BAD_REQUEST)
+#     def post(self, request, *args, **kwargs):
+#         username = request.data.get('username')
+#         if not username:
+#             return Response({"error": "username is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        try:
-            user = Register.objects.using('login_db').get(username=username)
-            otp = generate_otp()
-            user.verification_otp = otp
-            user.verification_otp_resend_count += 1  # Increment resend count
-            user.verification_otp_created_time = timezone.now()  
-            user.save(using='login_db')  # Save the new OTP to the database
+#         try:
+#             user = Register.objects.using('login_db').get(username=username)
+#             otp = generate_otp()
+#             user.verification_otp = otp
+#             user.verification_otp_resend_count += 1  # Increment resend count
+#             user.verification_otp_created_time = timezone.now()  
+#             user.save(using='login_db')  # Save the new OTP to the database
             
-            Register_LoginView().send_sms(username, otp)
-            return Response({"otp": "otp sent successfully"}, status=status.HTTP_200_OK)
-        except Register.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+#             Register_LoginView().send_sms(username, otp)
+#             return Response({"otp": "otp sent successfully"}, status=status.HTTP_200_OK)
+#         except Register.DoesNotExist:
+#             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class MemberDetailsViews(viewsets.ModelViewSet):

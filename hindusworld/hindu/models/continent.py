@@ -8,8 +8,8 @@ class Continent(models.Model):
     desc = models.CharField(db_column='desc', max_length=250, blank=True, null=True) 
     type=models.CharField(db_column='type', max_length=30,choices=[('CONTINENT','CONTINENT')],default='CONTINENT')
     created_at = models.DateTimeField(db_column='created_at',auto_now_add=True)
-    hindu_population=models.CharField(db_column='hindu_population',max_length=10000)
-    overall_population=models.CharField(db_column='overall_population',max_length=10000000)
+    hindu_population=models.CharField(db_column='hindu_population',max_length=100000000000000)
+    overall_population=models.CharField(db_column='overall_population',max_length=10000000000000000)
 
 
 

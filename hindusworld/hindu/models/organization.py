@@ -88,7 +88,7 @@ class Organization(models.Model):
     org_logo = models.TextField(null=True,blank=True)
     status=models.CharField(max_length=50,choices=[(e.name,e.value) for e in status],default=status.PENDING.value)
     geo_site = models.CharField(max_length=50, choices=[(e.name, e.value) for e in GeoSite], default=GeoSite.VILLAGE.value)
-    # country=models.ForeignKey(Country,on_delete=models.CASCADE,related_name='country',db_column="country")
+    country=models.ForeignKey(Country,on_delete=models.CASCADE,related_name='country',db_column="country")
     # organization_members = models.JSONField(null=True, blank=True)  
     object_id = models.ForeignKey('Village', db_column='object_id', on_delete=models.SET_NULL, null=True, blank=True, related_name='organization')
     organization_members=models.CharField(max_length=100000000000)

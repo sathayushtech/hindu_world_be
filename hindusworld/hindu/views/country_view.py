@@ -77,27 +77,25 @@ class CountryView(viewsets.ModelViewSet):
 #             return Response({"error": "Country not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
-
-class CountsView(APIView):
-    def get(self, request):
-        continent_list = Continent.objects.all()
+# class CountsView(APIView):
+#     def get(self, request):
+#         continent_list = Continent.objects.all()
         
-        organization_count = organization.objects.all().count()
-        continents_organization_count = []
+#         organization_count = organization.objects.all().count()  # Corrected capitalization
+#         continents_organization_count = []
         
-        for continent in continent_list:
-            count = organization.objects.filter(country__continent=continent).count()
-            continents_organization_count.append({
-                "continent_name": continent.name,
-                "organization_count": count
-            })
+#         for continent in continent_list:
+#             count = organization.objects.filter(country__continent=continent).count()  # Corrected capitalization
+#             continents_organization_count.append({
+#                 "continent_name": continent.name,
+#                 "organization_count": count
+#             })
         
-        return Response({
-            "Total Organizations Count": organization_count,
-            "continents_organization_count": continents_organization_count,
+#         return Response({
+#             "Total Organizations Count": organization_count,
+#             "continents_organization_count": continents_organization_count,
             
-        }, status=status.HTTP_200_OK)
-    
+#         }, status=status.HTTP_200_OK)
 
 
 

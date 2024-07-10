@@ -9,7 +9,6 @@ from rest_framework.pagination import PageNumberPagination
 
 class VillageView(viewsets.ModelViewSet):
     queryset = Village.objects.all()
-    print("sssssss")
     serializer_class = VillageSerializer
     pagination_class = CustomPagination
 
@@ -40,21 +39,12 @@ class VillageView(viewsets.ModelViewSet):
                 'message': 'Objects not found',
                 'status': 404
             })
-        
-class GetVillages(viewsets.ModelViewSet):
-    queryset = Village.objects.all()
-    serializer_class = VillageSerializer
-    pagination_class = CustomPagination
 
-    def list(self, request):
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
 
-        if page is not None:
-            serializer = VillageSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
 
-        serializer = VillageSerializer(queryset, many=True)
-        return Response(serializer.data)
+
+
+
+
 
 
