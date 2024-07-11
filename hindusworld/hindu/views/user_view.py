@@ -50,33 +50,6 @@ class Register_LoginView(generics.GenericAPIView):
 
 
 
-# class Validate_LoginOTPView(generics.GenericAPIView):
-#     serializer_class = Verify_LoginSerializer
-#     def post(self, request, *args, **kwargs):
-#         username = request.data.get('username')
-#         verification_otp = request.data.get('verification_otp')
-#         try:
-#             user = Register.objects.using('login_db').get(username=username, verification_otp=verification_otp)
-#             if user:
-#                 if user.verification_otp_created_time < timezone.now() - timezone.timedelta(hours=24):
-#                     return Response({"error": "OTP expired"}, status=status.HTTP_400_BAD_REQUEST)
-#                 # Update user status to ACTIVE
-#                 user.status = 'ACTIVE'
-#                 user.save(using='login_db')
-#                 refresh = RefreshToken.for_user(user)
-#                 access_token = refresh.access_token
-#                 return Response({
-#             'refresh': str(refresh),
-#             'access': str(refresh.access_token),
-#             'username': user.get_username(),
-#             'user_id': user.id
-#         }, status=status.HTTP_200_OK)
-#             else:
-#                 return Response({'error': 'Invalid credentials', 'status': '401'}, status=status.HTTP_401_UNAUTHORIZED)
-#         except Register.DoesNotExist:
-#             return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
-        
-
 
 class Validate_LoginOTPView(generics.GenericAPIView):
     serializer_class = Verify_LoginSerializer
@@ -84,25 +57,39 @@ class Validate_LoginOTPView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         verification_otp = request.data.get('verification_otp')
+        
         try:
             user = Register.objects.using('login_db').get(username=username)
         except Register.DoesNotExist:
             return Response({"error": "Invalid username"}, status=status.HTTP_400_BAD_REQUEST)
+        
         if user.verification_otp != verification_otp:
             return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
         if user.verification_otp_created_time < timezone.now() - timezone.timedelta(hours=24):
             return Response({"error": "OTP expired"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Update user status to ACTIVE
         user.status = 'ACTIVE'
         user.save(using='login_db')
-        send_welcome_email(username)
+
+        # Send a welcome email if the username is an email
+        if validate_email(username):
+            send_welcome_email(username)
+        
         refresh = RefreshToken.for_user(user)
         access_token = refresh.access_token
+        
         return Response({
             'refresh': str(refresh),
             'access': str(access_token),
             'username': user.get_username(),
             'user_id': user.id
         }, status=status.HTTP_200_OK)
+
+
+
+
 
 # class ResendOTPView(generics.GenericAPIView):
 #     serializer_class = ResendOtpSerializer

@@ -121,7 +121,7 @@ class AddOrgnization(generics.GenericAPIView):
 
             # Send email to EMAIL_HOST_USER
             send_mail(
-                'New Organization Created',
+                'New Organization added',
                 f'User ID: {request.user.id}\n'
                 f'Contact Number: {register_instance.contact_number}\n'
                 f'full Name: {request.user.full_name}\n'
@@ -134,7 +134,7 @@ class AddOrgnization(generics.GenericAPIView):
             )
 
             return Response({
-                "message": "Organization created successfully.",
+                "message": "Organization added successfully.",
                 "result": serializer.data
             }, status=status.HTTP_201_CREATED)
 
