@@ -35,10 +35,10 @@ class MemberPicSerializer(serializers.ModelSerializer):
 
 
 
-class ResendOtpSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Register
-        fields =["username"]
+# class ResendOtpSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Register
+#         fields =["username"]
 
 
 # class RegisterSerializer(serializers.ModelSerializer):

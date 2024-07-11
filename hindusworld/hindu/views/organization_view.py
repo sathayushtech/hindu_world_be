@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from ..models import Organization, Country,Continent,Village,Register
+from ..models import Organization, Country,Continent,Register,District
 from ..serializers.organization_serializer import OrgnisationSerializer,OrgnisationSerializer1,OrgnisationSerializer2,OrganizationSerializer3
 from ..utils import save_image_to_folder,save_logo_to_folder
 from ..pagination.org_pagination import OrganizationPagination
@@ -199,41 +199,41 @@ class AddOrgnization(generics.GenericAPIView):
 #         })
 
 
-from rest_framework.pagination import PageNumberPagination
+# from rest_framework.pagination import PageNumberPagination
 
-class GetIndianOrganizations(APIView):
-    def get(self, request):
-        indian_location = Village.objects.all()
-        organization_query_set = Organization.objects.all()
-        indian_organization = organization_query_set.filter(object_id__in=indian_location)
+# class GetIndianOrganizations(APIView):
+#     def get(self, request):
+#         indian_location = Village.objects.all()
+#         organization_query_set = Organization.objects.all()
+#         indian_organization = organization_query_set.filter(object_id__in=indian_location)
        
 
 
-        paginator = PageNumberPagination()
-        paginator.page_size = 50 
-        indian_organizations_page = paginator.paginate_queryset(indian_organization, request)
+#         paginator = PageNumberPagination()
+#         paginator.page_size = 50 
+#         indian_organizations_page = paginator.paginate_queryset(indian_organization, request)
 
 
-        indianorganization = OrganizationSerializer3(indian_organizations_page = paginator.paginate_queryset(indian_organization, request)
-, many=True)
+#         indianorganization = OrganizationSerializer3(indian_organizations_page = paginator.paginate_queryset(indian_organization, request)
+# , many=True)
         
-        return paginator.get_paginated_response( indianorganization.data)
+#         return paginator.get_paginated_response( indianorganization.data)
     
 
-from rest_framework.pagination import PageNumberPagination
+# from rest_framework.pagination import PageNumberPagination
 
-class GetGlobalOrganizations(APIView):
-    def get(self, request):
-        organization_query_set = Organization.objects.all()
-        global_organization = organization_query_set.exclude(geo_site__in=['S', 'D', 'B', 'V'])
+# class GetGlobalOrganizations(APIView):
+#     def get(self, request):
+#         organization_query_set = Organization.objects.all()
+#         global_organization = organization_query_set.exclude(geo_site__in=['S', 'D', 'B', 'V'])
 
-        paginator = PageNumberPagination()
-        paginator.page_size = 50 
-        global_organization_page = paginator.paginate_queryset(global_organization, request)
+#         paginator = PageNumberPagination()
+#         paginator.page_size = 50 
+#         global_organization_page = paginator.paginate_queryset(global_organization, request)
 
-        globaltemples = OrganizationSerializer3(global_organization_page, many=True)
+#         globaltemples = OrganizationSerializer3(global_organization_page, many=True)
 
-        return paginator.get_paginated_response( globaltemples.data)
+#         return paginator.get_paginated_response( globaltemples.data)
 
 
 
@@ -436,19 +436,13 @@ class GetbyDistrictLocationOrganization(generics.ListAPIView):
 
     def get_queryset(self):
         district_id =self.kwargs.get('district_id')
-        organizations_in_district = Organization.objects.filter(object_id__block__district_id=district_id)
+        organizations_in_district = Organization.objects.filter(object_id=district_id)
         return organizations_in_district
     
 
 
     
-class GetbyBlockLocationOrganization(generics.ListAPIView):
-    serializer_class = OrgnisationSerializer
 
-    def get_queryset(self):
-        block_id = self.kwargs.get('block_id')
-        organizations_in_district = Organization.objects.filter(object_id__block_id=block_id)
-        return organizations_in_district
 
 
 from rest_framework import viewsets, pagination
@@ -457,67 +451,6 @@ class CustomPagination(pagination.PageNumberPagination):
     page_size = 50
     page_size_query_param = 'page_size'
     max_page_size = 1000 
-
-# class GetOrgbyroot_map(generics.GenericAPIView):
-#     serializer_class = OrgnisationSerializer
-#     pagination_class = CustomPagination
-
-#     def get(self, request, input_value, field_name):
-#         try:
-#             field_names = [field.name for field in Organization._meta.get_fields()]
-
-#             if field_name in field_names:
-#                 if field_name == 'root_map':
-#                     # Validate UUID
-#                     try:
-#                         input_uuid = uuid.UUID(input_value)
-#                     except ValueError:
-#                         return Response({
-#                             'message': 'Invalid UUID format.',
-#                             'status': 400
-#                         })
-
-#                     # Fetch all related UUIDs based on the hierarchy
-#                     hierarchy_map = get_location_hierarchy()
-#                     if input_value not in hierarchy_map:
-#                         return Response({
-#                             'message': 'root_map UUID not found in hierarchy.',
-#                             'status': 400
-#                         })
-                    
-#                     related_uuids = hierarchy_map[input_value]
-
-#                     # Get the temples with the specified object_id (UUIDs)
-#                     queryset = Organization.objects.filter(object_id__in=related_uuids)
-                    
-#                 else:
-#                     filter_kwargs = {field_name: input_value}
-#                     queryset = Organization.objects.filter(**filter_kwargs)
-                
-#                 # Paginate the queryset
-#                 page = self.paginate_queryset(queryset)
-#                 if page is not None:
-#                     serialized_data = self.get_paginated_response(OrgnisationSerializer(page, many=True).data)
-#                 else:
-#                     serialized_data = OrgnisationSerializer(queryset, many=True)
-
-#                 return Response(serialized_data.data)
-#             else:
-#                 return Response({
-#                     'message': 'Invalid field name',
-#                     'status': 400
-#                 })
-
-#         except Organization.DoesNotExist:
-#             return Response({
-#                 'message': 'Object not found',
-#                 'status': 404
-#             })
-#         except Exception as e:
-#             return Response({
-#                 'message': str(e),
-#                 'status': 500
-#             })
 
 
 class GetOrgbyroot_map(generics.ListAPIView):
@@ -531,26 +464,15 @@ class GetOrgbyroot_map(generics.ListAPIView):
             raise ValidationError("Input value is required")
 
         # Define queries for each level using the correct field lookups
-        continent_query = Q(object_id__block__district__state__country__continent__pk=input_value)
-        country_query = Q(object_id__block__district__state__country__pk=input_value)
-        state_query = Q(object_id__block__district__state__pk=input_value)
-        district_query = Q(object_id__block__district__pk=input_value)
-        block_query = Q(object_id__block__pk=input_value)
-        village_query = Q(object_id__pk=input_value)
+        country_query = Q(object_id__state__country__pk=input_value)
+        state_query = Q(object_id__state__pk=input_value)
+        district_query = Q(object_id__pk=input_value)
 
         # Combine queries with OR operator
-        combined_query = (
-            continent_query | country_query | state_query |
-            district_query | block_query | village_query
-        )
+        combined_query = country_query | state_query | district_query
 
         queryset = Organization.objects.filter(combined_query).select_related(
-            'object_id__block__district__state__country__continent',
-            'object_id__block__district__state__country',
-            'object_id__block__district__state',
-            'object_id__block__district',
-            'object_id__block',
-            'object_id'
+            'object_id__state__country'
         )
 
         return queryset
