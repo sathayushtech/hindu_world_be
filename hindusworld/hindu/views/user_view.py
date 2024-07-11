@@ -1,5 +1,5 @@
 # from ..serializers import UserSerializer,LoginSerializer,VerifySerializer,ResetSerializer,ResetSerializer,ResendOtpSerializer,RegisterSerializerl,VerifyOtpSerializer
-from ..serializers import Register_LoginSerializer,Verify_LoginSerializer,MemberSerializer,MemberPicSerializer,ResendOtpSerializer
+from ..serializers import Register_LoginSerializer,Verify_LoginSerializer,MemberSerializer,MemberPicSerializer
 from rest_framework import viewsets,generics
 from ..models import Register
 from rest_framework .views import APIView,status
@@ -229,76 +229,76 @@ class UpdateMemberDetails(generics.GenericAPIView):
 #             'data': 'Invalid OTP'
 #         })
     
-class ResendOtp(generics.GenericAPIView):
-    serializer_class = ResendOtpSerializer
+# class ResendOtp(generics.GenericAPIView):
+#     serializer_class = ResendOtpSerializer
 
-    def post(self,request):
-        username = request.data["username"]
-        try:
-            user = Register.objects.using('login_db').get(username=username)
-        except Register.DoesNotExist:
-            return Response({
-                "status": 400,
-                "message": "Invalid username, please enter valid username"
-            })
-        try:
+#     def post(self,request):
+#         username = request.data["username"]
+#         try:
+#             user = Register.objects.using('login_db').get(username=username)
+#         except Register.DoesNotExist:
+#             return Response({
+#                 "status": 400,
+#                 "message": "Invalid username, please enter valid username"
+#             })
+#         try:
 
-            if validate_email(username):
-                otp = generate_otp()
-                user.verification_otp=otp
-                user.save()
-                send_email(username,otp)
-                return Response({
-                    "status":200,
-                    "message":"resent otp succesfull, please check your Email"
-                })
+#             if validate_email(username):
+#                 otp = generate_otp()
+#                 user.verification_otp=otp
+#                 user.save()
+#                 send_email(username,otp)
+#                 return Response({
+#                     "status":200,
+#                     "message":"resent otp succesfull, please check your Email"
+#                 })
             
-            else:
-                otp = generate_otp()
-                user.verification_otp=otp
-                user.save()
-                Resend_sms(username,otp)
-                return Response({
-                    "status":200,
-                    "message":"resent otp succesfull, please check your mobile number"
-                })
-        except:
-            return Response({
-                "status":200,
-                "message":"invalid otp"
-            })
+#             else:
+#                 otp = generate_otp()
+#                 user.verification_otp=otp
+#                 user.save()
+#                 Resend_sms(username,otp)
+#                 return Response({
+#                     "status":200,
+#                     "message":"resent otp succesfull, please check your mobile number"
+#                 })
+#         except:
+#             return Response({
+#                 "status":200,
+#                 "message":"invalid otp"
+#             })
         
-class ForgotOtp(generics.GenericAPIView):
-    serializer_class = ResendOtpSerializer
+# class ForgotOtp(generics.GenericAPIView):
+#     serializer_class = ResendOtpSerializer
 
-    def post(self,request):
-        username = request.data["username"]
-        try:
-            user = Register.objects.using('login_db').get(username=username)
-        except Register.DoesNotExist:
-            return Response({
-                "status": 400,
-                "message": "Invalid username, please enter valid username"
-            })
-        if validate_email(username):
-            otp = generate_otp()
-            send_email(username,otp)
-            user.forgot_password_otp=otp
-            user.save()
-            return Response({
-                "status":200,
-                "message":"otp succesfully, please check your Email"
-            })
+#     def post(self,request):
+#         username = request.data["username"]
+#         try:
+#             user = Register.objects.using('login_db').get(username=username)
+#         except Register.DoesNotExist:
+#             return Response({
+#                 "status": 400,
+#                 "message": "Invalid username, please enter valid username"
+#             })
+#         if validate_email(username):
+#             otp = generate_otp()
+#             send_email(username,otp)
+#             user.forgot_password_otp=otp
+#             user.save()
+#             return Response({
+#                 "status":200,
+#                 "message":"otp succesfully, please check your Email"
+#             })
         
-        else:
-            otp = generate_otp()
-            user.forgot_password_otp=otp
-            user.save()
-            send_sms(username,otp)
-            return Response({
-                "status":200,
-                "message":"otp sent succesfully, please check your mobile number"
-            })
+#         else:
+#             otp = generate_otp()
+#             user.forgot_password_otp=otp
+#             user.save()
+#             send_sms(username,otp)
+#             return Response({
+#                 "status":200,
+#                 "message":"otp sent succesfully, please check your mobile number"
+#             })
         
 # class ResetPassword(generics.GenericAPIView):
 #     serializer_class = ResetSerializer

@@ -2,9 +2,7 @@ from django.db import models
 from ..enums.user_status_enum import UserStatus
 from ..enums import MemberStatus
 import uuid
-# import datetime
 from django.utils import timezone
-# from django.contrib.auth.models import AbstractUser
 from ..utils import send_email,generate_otp,validate_email,send_sms
 from django.dispatch import receiver
 from django.db.models.signals import post_save
