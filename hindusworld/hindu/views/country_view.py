@@ -1,5 +1,5 @@
 from rest_framework import viewsets,generics
-from ..models import Country,organization,continents
+from ..models import Country,organization,Continent
 from ..serializers import countrySerializer,CountrySerializer1
 from rest_framework import status
 from rest_framework.response import Response
@@ -49,14 +49,14 @@ class CountryView(viewsets.ModelViewSet):
 #             total_org_count = organization.objects.count()
             
 #             # Get the total count of continents
-#             continent_count = continents.objects.count()
+#             continent_count = Continent.objects.count()
             
 #             # Get the total count of countries
 #             country_count = Country.objects.count()
 
 #             # Get the organization count for each continent
 #             continents_organization_count = []
-#             continent = continents.objects.all()
+#             continent = Continent.objects.all()
 #             for continent in continent:
 #                 count = organization.objects.filter(country__continent=continent).count()
 #                 continents_organization_count.append({
@@ -77,27 +77,25 @@ class CountryView(viewsets.ModelViewSet):
 #             return Response({"error": "Country not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
-
-class CountsView(APIView):
-    def get(self, request):
-        continent_list = continents.objects.all()
+# class CountsView(APIView):
+#     def get(self, request):
+#         continent_list = Continent.objects.all()
         
-        organization_count = organization.objects.all().count()
-        continents_organization_count = []
+#         organization_count = organization.objects.all().count()  # Corrected capitalization
+#         continents_organization_count = []
         
-        for continent in continent_list:
-            count = organization.objects.filter(country__continent=continent).count()
-            continents_organization_count.append({
-                "continent_name": continent.name,
-                "organization_count": count
-            })
+#         for continent in continent_list:
+#             count = organization.objects.filter(country__continent=continent).count()  # Corrected capitalization
+#             continents_organization_count.append({
+#                 "continent_name": continent.name,
+#                 "organization_count": count
+#             })
         
-        return Response({
-            "Total Organizations Count": organization_count,
-            "continents_organization_count": continents_organization_count,
+#         return Response({
+#             "Total Organizations Count": organization_count,
+#             "continents_organization_count": continents_organization_count,
             
-        }, status=status.HTTP_200_OK)
-    
+#         }, status=status.HTTP_200_OK)
 
 
 
@@ -120,7 +118,7 @@ class countries_by_Continent(generics.GenericAPIView):
                 "countries": serialized_data.data
             }, status=status.HTTP_200_OK)
         
-        except continents.DoesNotExist:
+        except Continent.DoesNotExist:
             return Response({
                 'message': 'Continent not found',
                 'status': 404
@@ -135,3 +133,43 @@ class countries_by_Continent(generics.GenericAPIView):
 
 
 
+
+
+# from ..serializers import countrySerializer
+# from ..models import Country
+# from rest_framework import viewsets
+# from rest_framework .response import Response
+
+
+
+# class CountryVIews(viewsets.ModelViewSet):
+#     queryset = Country.objects.all()
+#     serializer_class = countrySerializer
+
+
+#     def list(self, request):
+#         filter_kwargs = {}
+
+#         for key, value in request.query_params.items():
+#             filter_kwargs[key] = value
+
+#         # if not filter_kwargs:
+#         #     return super().list(request)
+
+#         try:
+#             queryset = Country.objects.filter(**filter_kwargs)
+            
+#             if not queryset.exists():
+#                 return Response({
+#                     'message': 'Data not found',
+#                     'status': 404
+#                 })
+
+#             serialized_data = countrySerializer(queryset, many=True)
+#             return Response(serialized_data.data)
+
+#         except Country.DoesNotExist:
+#             return Response({
+#                 'message': 'Objects not found',
+#                 'status': 404
+#             })

@@ -203,7 +203,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'sandhya.sathayush@gmail.com'
-EMAIL_HOST_PASSWORD = 'wffr lefi yjam tblp'
+EMAIL_HOST_PASSWORD = 'isha aevi gddv xccr'
 DEFAULT_FROM_EMAIL = 'sandhya.sathayush@gmail.com'
 
 

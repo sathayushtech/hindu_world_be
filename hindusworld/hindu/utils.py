@@ -6,6 +6,19 @@ import string
 import requests
 import base64
 import os
+import uuid
+from rest_framework.pagination import PageNumberPagination
+
+
+
+
+
+class CustomPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 
 
 
@@ -23,12 +36,14 @@ def image_path_to_binary(filename):
         # print("File not found:", img_path)
         return None
     
+
+    ############## single image##########
 def save_image_to_folder(org_images, _id,name):
     image_data = base64.b64decode(org_images)
     folder_name = str(_id)
     img_url = settings.FILE_URL
 
-    folder_path = os.path.join(img_url,"organization", folder_name)
+    folder_path = os.path.join(img_url,"hinduworldimages", folder_name)
     print(folder_path,"11122223333")
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
@@ -37,6 +52,92 @@ def save_image_to_folder(org_images, _id,name):
     with open(image_path, "wb") as image_file:
         image_file.write(image_data)
     return image_path
+
+
+
+def save_logo_to_folder(org_images, _id,name):
+    image_data = base64.b64decode(org_images)
+    folder_name = str(_id)
+    img_url = settings.FILE_URL
+
+    folder_path = os.path.join(img_url,"hinduworldlogos", folder_name)
+    print(folder_path,"11122223333")
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    image_name = name+".jpg"
+    image_path = os.path.join(folder_path, image_name)
+    with open(image_path, "wb") as image_file:
+        image_file.write(image_data)
+    return image_path
+
+
+def save_profile_image_to_folder(org_images, _id,name):
+    image_data = base64.b64decode(org_images)
+    folder_name = str(_id)
+    img_url = settings.FILE_URL
+
+    folder_path = os.path.join(img_url,"profile_pic", folder_name)
+    print(folder_path,"11122223333")
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    image_name = name+".jpg"
+    image_path = os.path.join(folder_path, image_name)
+    with open(image_path, "wb") as image_file:
+        image_file.write(image_data)
+    return image_path
+
+
+
+
+
+# def send_welcome_email(username):
+#     subject = 'Welcome to HinduWorld'
+#     message = 'Welcome to HinduWorld! We are excited to have you as a member of our community.'
+#     email_from = settings.EMAIL_HOST_USER
+#     recipient_list = [username]
+#     send_mail(subject, message, email_from, recipient_list)
+
+
+
+
+
+
+
+
+
+
+def send_welcome_email(username):
+    subject = 'Welcome to HinduWorld'
+    html_content = f"""
+    <html>
+    <head>
+        <title>Welcome to HinduWorld</title>
+    </head>
+    <body>
+        <p>Dear {username},</p>
+        <p>Namaste and Welcome to HinduWorld,</p>
+        <p>We are thrilled to have you join our community. HinduWorld is dedicated to connecting Hindu organizations and fostering collaboration within our vibrant network.</p>
+        <p>As a member, you can share information about your organization and activities. We look forward to your contributions and hope you will find the platform valuable.</p>
+        <p>If you have any questions or need assistance, please do not hesitate to contact us at support@hinduworld.com.</p>
+        <p>Best Regards,<br>
+        HinduWorld Team</p>
+    </body>
+    </html>
+    """
+    email_from = settings.EMAIL_HOST_USER
+    recipient_list = [username]
+    
+    send_mail(
+        subject=subject,
+        message='',
+        from_email=email_from,
+        recipient_list=recipient_list,
+        html_message=html_content
+    )
+
+
+
+
 
 
 
@@ -90,7 +191,7 @@ def send_sms(username, otp):
     print(url)  
     response = requests.get(url)
     print(response.text) 
-    print("Sent Mobile OTP")
+    print("Sent Mobile OTP",username,otp,"ssssssssssssssssssssssssss")
 
 
 def Resend_sms(username, otp):
@@ -101,4 +202,4 @@ def Resend_sms(username, otp):
     print(url)  
     response = requests.get(url)
     print(response.text) 
-    print("Sent Mobile OTP")
+    print("Sent Mobile OTP",username,otp,"rrrrrrrrrrrrrrrrrrrrr")

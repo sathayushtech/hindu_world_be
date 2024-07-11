@@ -1,6 +1,9 @@
 from rest_framework import serializers
-from ..models import organization
+from ..models import Organization
 from ..utils import image_path_to_binary
+
+
+
 
 class OrgnisationSerializer(serializers.ModelSerializer):
     org_images=serializers.SerializerMethodField()
@@ -31,7 +34,7 @@ class OrgnisationSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         # Fields to check for empty or null values
-        fields_to_check = ['org_images', 'org_logo', 'chairman', 'web_url', 'est_by','reg_id','est_date','location','organization_name','web_url','org_detail']
+        fields_to_check = ['org_images', 'org_logo', 'chairman', 'web_url', 'est_by','reg_id','est_date','location','organization_name','web_url','org_detail','geo_site','organization_members']
         for field in fields_to_check:
             if representation.get(field) in [None, '', 'null','-']:
                 representation[field] = "data not found"
@@ -42,14 +45,14 @@ class OrgnisationSerializer(serializers.ModelSerializer):
 
        
     class Meta:
-        model = organization
+        model = Organization
         fields = "__all__"
 
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         # Fields to check for empty or null values
-        fields_to_check = ['org_images', 'org_logo', 'chairman', 'web_url', 'est_by','reg_id','est_date','location','organization_name','web_url','org_detail']
+        fields_to_check = ['org_images', 'org_logo', 'chairman', 'web_url', 'est_by','reg_id','est_date','location','organization_name','web_url','org_detail','geo_site','organization_members']
         for field in fields_to_check:
             if representation.get(field) in [None, '', 'null','-']:
                 representation[field] = "data not found"
@@ -60,7 +63,7 @@ class OrgnisationSerializer(serializers.ModelSerializer):
 class OrgnisationSerializer1(serializers.ModelSerializer):
     
     class Meta:
-        model = organization
+        model = Organization
         fields = "__all__"
 
 
@@ -68,5 +71,11 @@ class OrgnisationSerializer1(serializers.ModelSerializer):
 class OrgnisationSerializer2(serializers.ModelSerializer):
     
     class Meta:
-        model = organization
+        model = Organization
         fields = ['status']        
+
+
+class OrganizationSerializer3(serializers.ModelSerializer):
+ 
+    image_location = serializers.SerializerMethodField()
+    # object_id=serializers.SerializerMethodField()
