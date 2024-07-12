@@ -10,7 +10,7 @@ from ..utils import validate_email,send_email,send_sms,generate_otp,Resend_sms,s
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from ..utils import save_profile_image_to_folder
+from ..utils import save_image_to_folder
 from datetime import datetime
 
      
@@ -91,28 +91,7 @@ class Validate_LoginOTPView(generics.GenericAPIView):
 
 
 
-# class ResendOTPView(generics.GenericAPIView):
-#     serializer_class = ResendOtpSerializer
-
-#     def post(self, request, *args, **kwargs):
-#         username = request.data.get('username')
-#         if not username:
-#             return Response({"error": "username is required"}, status=status.HTTP_400_BAD_REQUEST)
-        
-#         try:
-#             user = Register.objects.using('login_db').get(username=username)
-#             otp = generate_otp()
-#             user.verification_otp = otp
-#             user.verification_otp_resend_count += 1  # Increment resend count
-#             user.verification_otp_created_time = timezone.now()  
-#             user.save(using='login_db')  # Save the new OTP to the database
-            
-#             Register_LoginView().send_sms(username, otp)
-#             return Response({"otp": "otp sent successfully"}, status=status.HTTP_200_OK)
-#         except Register.DoesNotExist:
-#             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
-
+#
 class MemberDetailsViews(viewsets.ModelViewSet):
     queryset=Register.objects.all()
     serializer_class=MemberPicSerializer
@@ -135,7 +114,7 @@ class UpdateMemberDetails(generics.GenericAPIView):
         serializer.save()
         # If image_location is provided and not "null", save the image
         if profile_pic and profile_pic != "null":
-            saved_location = save_profile_image_to_folder(profile_pic, serializer.instance.id, serializer.instance.full_name)
+            saved_location = save_image_to_folder(profile_pic, serializer.instance.id, serializer.instance.full_name,'profile_pic')
             if saved_location:
                 serializer.instance.profile_pic = saved_location
                 print(serializer.instance.profile_pic, "referg")

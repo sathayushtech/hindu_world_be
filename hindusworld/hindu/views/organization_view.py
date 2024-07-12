@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from ..models import Organization, Country,Continent,Register,District
 from ..serializers.organization_serializer import OrgnisationSerializer,OrgnisationSerializer1,OrgnisationSerializer2,OrganizationSerializer3
-from ..utils import save_image_to_folder,save_logo_to_folder
+from ..utils import save_image_to_folder
 from ..pagination.org_pagination import OrganizationPagination
 from ..pagination.orgbycountry_pagination import orgByCountryPagination
 from rest_framework.generics import ListAPIView
@@ -108,12 +108,13 @@ class AddOrgnization(generics.GenericAPIView):
             org_logo = request.data.get('org_logo')
 
             if org_images and org_images != "null":
-                saved_location = save_image_to_folder(org_images, serializer.instance._id, serializer.instance.organization_name)
+                saved_location = save_image_to_folder(org_images, serializer.instance._id, serializer.instance.organization_name,'hinduworldimages')
                 if saved_location:
                     serializer.instance.org_images = saved_location
 
             if org_logo and org_logo != "null":
-                saved_logo_location = save_logo_to_folder(org_logo, serializer.instance._id, serializer.instance.organization_name)
+                # saved_logo_location = save_logo_to_folder(org_logo, serializer.instance._id, serializer.instance.organization_name)
+                saved_logo_location = save_image_to_folder(org_logo, serializer.instance._id, serializer.instance.organization_name,'hinduworldlogos')
                 if saved_logo_location:
                     serializer.instance.org_logo = saved_logo_location
 

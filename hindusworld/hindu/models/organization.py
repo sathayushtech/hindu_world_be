@@ -12,77 +12,17 @@ from django.contrib.contenttypes.fields import GenericRelation
 
 class Organization(models.Model):
     _id = models.CharField(db_column='_id', primary_key=True, max_length=45 ,default=uuid.uuid1, unique=True ,editable=False)
-    organization_name = models.CharField(
-        max_length=200,
-        validators=[
-            MaxLengthValidator(200),
-            MinLengthValidator(2, "Organization name cannot be empty")
-        ]
-    )
-    est_by = models.CharField(
-        max_length=100,
-        validators=[
-            MaxLengthValidator(100),
-            MinLengthValidator(1, "Establisher name cannot be empty")
-        ]
-    )
-    chairman = models.CharField(
-        max_length=100,
-        validators=[
-            MaxLengthValidator(100),
-            MinLengthValidator(1, "Chairman name cannot be empty")
-        ]
-    )
-    desc = models.TextField(
-        validators=[
-            MinLengthValidator(1, "Description cannot be empty")
-        ]
-    )
-    est_date = models.CharField(
-        max_length=50,
-        validators=[
-            MaxLengthValidator(50),
-            MinLengthValidator(1, "Establishment date cannot be empty"),
-            RegexValidator(
-             
-                message="Date must be in YYYY-MM-DD format"
-            )
-        ]
-    )
-    reg_id = models.CharField(
-        max_length=200,
-        validators=[
-            MaxLengthValidator(200),
-            MinLengthValidator(1, "Registration ID cannot be empty")
-        ]
-    )
-    location = models.TextField(
-        validators=[
-            MinLengthValidator(1, "Location cannot be empty")
-        ]
-    )
-    web_url = models.URLField(
-        validators=[ 
-            URLValidator(message="Invalid URL format")
-        ]
-    )
-    org_detail = models.CharField(
-        max_length=200,
-        validators=[
-            MaxLengthValidator(200),
-            MinLengthValidator(1, "Organization detail cannot be empty")
-        ]
-    )
-    mission = models.TextField(
-        validators=[
-            MinLengthValidator(1, "Mission cannot be empty")
-        ]
-    )
-    org_images = models.TextField(
-        validators=[
-            MinLengthValidator(1, "Organization images cannot be empty")
-        ]
-    )
+    organization_name = models.CharField(max_length=200,)
+    est_by = models.CharField(max_length=100)
+    chairman = models.CharField(max_length=100)
+    desc = models.TextField()
+    est_date = models.CharField(max_length=50)
+    reg_id = models.CharField(max_length=200)
+    location = models.TextField()
+    web_url = models.URLField()
+    org_detail = models.CharField(max_length=200)
+    mission = models.TextField()
+    org_images = models.TextField()
     # org_images = models.JSONField(default=list, blank=True)
     # org_logo = models.JSONField(default=list, blank=True)
     org_logo = models.TextField(null=True,blank=True)

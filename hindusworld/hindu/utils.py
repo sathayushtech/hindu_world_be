@@ -37,65 +37,36 @@ def image_path_to_binary(filename):
         return None
     
 
-    ############## single image##########
-def save_image_to_folder(org_images, _id,name):
-    image_data = base64.b64decode(org_images)
-    folder_name = str(_id)
-    img_url = settings.FILE_URL
 
-    folder_path = os.path.join(img_url,"hinduworldimages", folder_name)
-    print(folder_path,"11122223333")
+
+def save_image_to_folder(image_location, _id, name,entity_type):
+    # Decode the base64 image data
+    image_data = base64.b64decode(image_location)
+    # Define the folder name using the _id
+    folder_name = str(_id)
+    # Get the base URL for the file storage
+    img_url = settings.FILE_URL
+    # Create the folder path
+    folder_path = os.path.join(img_url, entity_type, folder_name)
+    # Create the folder if it doesn't exist
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
-    image_name = name+".jpg"
+    # Define the image name
+    image_name = name + ".jpg"
+    # Define the full image path
     image_path = os.path.join(folder_path, image_name)
+    # Save the image to the defined path
     with open(image_path, "wb") as image_file:
         image_file.write(image_data)
-    return image_path
-
-
-
-def save_logo_to_folder(org_images, _id,name):
-    image_data = base64.b64decode(org_images)
-    folder_name = str(_id)
-    img_url = settings.FILE_URL
-
-    folder_path = os.path.join(img_url,"hinduworldlogos", folder_name)
-    print(folder_path,"11122223333")
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-    image_name = name+".jpg"
-    image_path = os.path.join(folder_path, image_name)
-    with open(image_path, "wb") as image_file:
-        image_file.write(image_data)
-    return image_path
-
-
-def save_profile_image_to_folder(org_images, _id,name):
-    image_data = base64.b64decode(org_images)
-    folder_name = str(_id)
-    img_url = settings.FILE_URL
-
-    folder_path = os.path.join(img_url,"profile_pic", folder_name)
-    print(folder_path,"11122223333")
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-    image_name = name+".jpg"
-    image_path = os.path.join(folder_path, image_name)
-    with open(image_path, "wb") as image_file:
-        image_file.write(image_data)
-    return image_path
+    # Return the relative path to be stored in the database
+    relative_path = os.path.join(entity_type, folder_name, image_name)
+    return relative_path
 
 
 
 
 
-# def send_welcome_email(username):
-#     subject = 'Welcome to HinduWorld'
-#     message = 'Welcome to HinduWorld! We are excited to have you as a member of our community.'
-#     email_from = settings.EMAIL_HOST_USER
-#     recipient_list = [username]
-#     send_mail(subject, message, email_from, recipient_list)
+
 
 
 
