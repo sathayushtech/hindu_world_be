@@ -4,19 +4,25 @@ from ..utils import image_path_to_binary
 
 
 class DistrictSerializer(serializers.ModelSerializer):
-    image_location = serializers.SerializerMethodField()
-
-    def get_image_location(self, instance):
-        filename = instance.image_location
-        if filename:
-            format = image_path_to_binary(filename)
-            return format
-        return None
-
-
-
-
 
     class Meta:
         model = District
         fields = "__all__"
+
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Fields to check for empty or null values
+        fields_to_check = ['headquarters', 'name', 'shortname', 'desc', 'cityname','type','state','created_at']
+        for field in fields_to_check:
+            if representation.get(field) in [None, '', 'null','-']:
+                representation[field] = "data not found"
+  
+        return representation
+
+      
+    # def to_representation(self, instance):
+    #     representation = super().to_representation(instance)
+    #     if representation.get('headquarters') in [None, '']:
+    #         representation['headquarters'] = 'data not found'
+    #         return representation
