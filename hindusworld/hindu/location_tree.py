@@ -1,4 +1,4 @@
-from .models import *
+from .models import village,block,District,State,Country,Continent
 
 # def get_location_hierarchy():
 #     hierarchy_map = {}
@@ -103,7 +103,7 @@ def get_location_hierarchy():
                     state_list.append(district_id)
 
                     # Fetch blocks related to the current district
-                    blocks = Block.objects.filter(district=district)
+                    blocks = block.objects.filter(district=district)
 
                     for block in blocks:
                         block_id = str(block._id)
@@ -111,7 +111,7 @@ def get_location_hierarchy():
                         district_list.append(block_id)
 
                         # Fetch villages related to the current block
-                        villages = Village.objects.filter(block=block)
+                        villages = village.objects.filter(block=block)
 
                         for village in villages:
                             village_id = str(village._id)

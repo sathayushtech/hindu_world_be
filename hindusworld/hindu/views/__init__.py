@@ -7,5 +7,5 @@ from .district_view import DistrictVIew,districts_By_State
 # from .block_view import BlockView
 # from .village_view import VillageView
 # from .user_view import Registerview,LoginApiView,VerifyOtpView,ResendOtp,ForgotOtp,ResetPassword
-from .user_view import Register_LoginView,Validate_LoginOTPView,MemberDetailsViews,UpdateMemberDetails
+from .user_view import Register_LoginView,Validate_LoginOTPView,MemberDetailsViews,UpdateMemberDetails,GetProfile,GetProfileById
 

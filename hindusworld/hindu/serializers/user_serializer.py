@@ -18,7 +18,7 @@ class Verify_LoginSerializer(serializers.ModelSerializer):
 class MemberSerializer(serializers.ModelSerializer):
     class Meta:
         model=Register
-        fields=["full_name","father_name","profile_pic","dob","contact_number"]
+        fields=["id","full_name","father_name","profile_pic","dob","contact_number"]
 
 
 class MemberPicSerializer(serializers.ModelSerializer):
