@@ -455,7 +455,7 @@ class CustomPagination(pagination.PageNumberPagination):
 
 
 class GetOrgbyroot_map(generics.ListAPIView):
-    serializer_class = OrgnisationSerializer
+    serializer_class = OrgnisationSerializer1
     pagination_class = CustomPagination
 
     def get_queryset(self):
