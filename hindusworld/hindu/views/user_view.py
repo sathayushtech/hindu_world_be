@@ -100,25 +100,30 @@ class MemberDetailsViews(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 class UpdateMemberDetails(generics.GenericAPIView):
-    serializer_class = MemberSerializer
     permission_classes = [IsAuthenticated]
+    serializer_class = MemberSerializer
 
     def put(self, request, id):
+        # Retrieve the instance
         instance = get_object_or_404(Register, id=id)
+        # Retrieve profile_pic from request data
         profile_pic = request.data.get('profile_pic')
+        # Make a mutable copy of request.data and set profile_pic to "null"
         mutable_data = request.data.copy()
         mutable_data['profile_pic'] = "profile_pic"
+        # Instantiate the serializer with the mutable copy of data
         serializer = self.get_serializer(instance, data=mutable_data)
         serializer.is_valid(raise_exception=True)
         serializer.validated_data['is_member'] = True
         serializer.save()
+        # If profile_pic is provided and not "null", save the image
         if profile_pic and profile_pic != "null":
-            saved_location = image_path_to_binary(profile_pic, serializer.instance.id, serializer.instance.full_name, 'profile_pic')
+            saved_location = save_image_to_folder(profile_pic, serializer.instance.id, serializer.instance.full_name, 'profile_pic')
             if saved_location:
                 serializer.instance.profile_pic = saved_location
                 serializer.instance.save()
+        # Return the response with the updated data
         return Response(MemberSerializer(serializer.instance).data, status=status.HTTP_200_OK)
-
 class GetProfile(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -134,6 +139,13 @@ class GetProfile(APIView):
                     item_data['profile_pic'] = encoded_string
                     response_data.append(item_data)
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
 
 class GetProfileById(APIView):
     permission_classes = [IsAuthenticated]
