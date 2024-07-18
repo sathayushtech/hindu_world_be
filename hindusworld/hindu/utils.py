@@ -24,8 +24,9 @@ class CustomPagination(PageNumberPagination):
 
 def image_path_to_binary(filename):
     img_url = settings.FILE_URL
-    img_path = os.path.join(img_url, filename)  # Assuming settings.MEDIA_ROOT contains the directory where your images are stored
-    # print(img_path, "---------------------------------")
+    print("kkkkk",img_url)
+    img_path = os.path.join(img_url, filename) # Assuming settings.MEDIA_ROOT contains the directory where your images are stored
+    print(img_path, "---------------------------------")
     if os.path.exists(img_path):
         with open(img_path, "rb") as image_file:
             image_data = image_file.read()
