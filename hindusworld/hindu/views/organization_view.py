@@ -455,7 +455,7 @@ class CustomPagination(pagination.PageNumberPagination):
 
 
 class GetOrgbyroot_map(generics.ListAPIView):
-    serializer_class = OrgnisationSerializer1
+    serializer_class = OrgnisationSerializer
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -465,15 +465,23 @@ class GetOrgbyroot_map(generics.ListAPIView):
             raise ValidationError("Input value is required")
 
         # Define queries for each level using the correct field lookups
+        continent_query = Q(object_id__state__country__continent__pk=input_value)
         country_query = Q(object_id__state__country__pk=input_value)
         state_query = Q(object_id__state__pk=input_value)
         district_query = Q(object_id__pk=input_value)
+      
 
         # Combine queries with OR operator
-        combined_query = country_query | state_query | district_query
+        combined_query = (
+            continent_query | country_query | state_query |
+            district_query 
+        )
 
         queryset = Organization.objects.filter(combined_query).select_related(
-            'object_id__state__country'
+            'object_id__state__country__continent',
+            'object_id__state__country',
+            'object_id__state',
+            'object_id'
         )
 
         return queryset

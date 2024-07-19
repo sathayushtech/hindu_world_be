@@ -22,20 +22,41 @@ class CustomPagination(PageNumberPagination):
 
 
 
+# def image_path_to_binary(filename):
+#     img_url = settings.FILE_URL
+#     img_path = os.path.join(img_url, filename)  # Assuming settings.MEDIA_ROOT contains the directory where your images are stored
+#     # print(img_path, "---------------------------------")
+#     if os.path.exists(img_path):
+#         with open(img_path, "rb") as image_file:
+#             image_data = image_file.read()
+#             base64_encoded_image = base64.b64encode(image_data)
+#             # print(base64_encoded_image)
+#             return base64_encoded_image
+#     else:
+#         # print("File not found:", img_path)
+#         return None
+    
+
 def image_path_to_binary(filename):
-    img_url = settings.FILE_URL
-    img_path = os.path.join(img_url, filename)  # Assuming settings.MEDIA_ROOT contains the directory where your images are stored
-    # print(img_path, "---------------------------------")
+    img_path = os.path.join(settings.MEDIA_ROOT, filename)
     if os.path.exists(img_path):
         with open(img_path, "rb") as image_file:
             image_data = image_file.read()
-            base64_encoded_image = base64.b64encode(image_data)
-            # print(base64_encoded_image)
+            base64_encoded_image = base64.b64encode(image_data).decode('utf-8')
             return base64_encoded_image
     else:
-        # print("File not found:", img_path)
         return None
-    
+
+# def image_path_to_binary(filename):
+#     img_path = os.path.join(settings.MEDIA_ROOT, filename)
+#     if os.path.exists(img_path):
+#         with open(img_path, "rb") as image_file:
+#             image_data = image_file.read()
+#             base64_encoded_image = base64.b64encode(image_data).decode('utf-8')
+#             return base64_encoded_image
+#     else:
+#         return None
+
 
 
 
