@@ -106,6 +106,7 @@ class UpdateMemberDetails(generics.GenericAPIView):
     def put(self, request, id):
         instance = get_object_or_404(Register, id=id)
         profile_pic = request.data.get('profile_pic')
+        print(profile_pic,"sss")
         mutable_data = request.data.copy()
         mutable_data['profile_pic'] = "profile_pic"
         serializer = self.get_serializer(instance, data=mutable_data)
@@ -120,6 +121,11 @@ class UpdateMemberDetails(generics.GenericAPIView):
                 serializer.instance.save()
 
         return Response(MemberSerializer(serializer.instance).data, status=status.HTTP_200_OK)
+
+
+
+
+
 
 
 
