@@ -37,7 +37,6 @@ class CustomPagination(PageNumberPagination):
 #         return None
     
 
-
 def image_path_to_binary(filename):
     img_path = os.path.join(settings.MEDIA_ROOT, filename)
     if os.path.exists(img_path):
@@ -47,6 +46,16 @@ def image_path_to_binary(filename):
             return base64_encoded_image
     else:
         return None
+
+# def image_path_to_binary(filename):
+#     img_path = os.path.join(settings.MEDIA_ROOT, filename)
+#     if os.path.exists(img_path):
+#         with open(img_path, "rb") as image_file:
+#             image_data = image_file.read()
+#             base64_encoded_image = base64.b64encode(image_data).decode('utf-8')
+#             return base64_encoded_image
+#     else:
+#         return None
 
 
 
