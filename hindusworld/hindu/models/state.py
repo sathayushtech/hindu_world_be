@@ -22,5 +22,5 @@ class State(models.Model):
 
 
     class Meta:
-        managed = True
+        managed = False
         db_table = 'state'

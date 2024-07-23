@@ -3,7 +3,10 @@ import uuid
 from django.core.validators import URLValidator, RegexValidator, MaxLengthValidator, MinLengthValidator
 from django.core.exceptions import ValidationError
 import re
-from ..models import Country
+from ..models import *
+from .district import District
+from .category import Category
+from .sub_category import SubCategory
 from ..enums import status,GeoSite
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -20,7 +23,7 @@ class Organization(models.Model):
     reg_id = models.CharField(max_length=200)
     location = models.TextField()
     web_url = models.URLField()
-    org_detail = models.CharField(max_length=200)
+    org_detail = models.TextField()
     mission = models.TextField()
     org_images = models.TextField()
     # org_images = models.JSONField(default=list, blank=True)
@@ -28,12 +31,11 @@ class Organization(models.Model):
     org_logo = models.TextField(null=True,blank=True)
     status=models.CharField(max_length=50,choices=[(e.name,e.value) for e in status],default=status.PENDING.value)
     geo_site = models.CharField(max_length=50, choices=[(e.name, e.value) for e in GeoSite], default=GeoSite.DISTRICT.value)
-    country=models.ForeignKey(Country,on_delete=models.CASCADE,related_name='country',db_column="country",null=True, blank=True)
-    # organization_members = models.JSONField(null=True, blank=True)  
-    object_id = models.ForeignKey('District', db_column='object_id', on_delete=models.SET_NULL, null=True, blank=True, related_name='organization')
-    organization_members=models.CharField(max_length=10000)
-    # content_type = models.ForeignKey(ContentType, db_column='content_type',on_delete=models.SET_NULL, null=True, blank=True)
-    # root_map = GenericForeignKey('content_type', 'object_id')
+    country=models.ForeignKey(Country,on_delete=models.CASCADE,related_name='country',db_column="country",null=True, blank=True) 
+    object_id = models.ForeignKey(District, db_column='object_id', on_delete=models.SET_NULL, null=True, blank=True, related_name='organization')
+    organization_members=models.CharField(max_length=10000, null=True)
+    category_id = models.ForeignKey(Category, on_delete=models.SET_NULL,db_column='category_id', null=True, blank=True)
+    sub_category_id = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, db_column='sub_category_id', null=True, blank=True)
     
 
 

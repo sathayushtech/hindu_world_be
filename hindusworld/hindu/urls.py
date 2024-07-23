@@ -2,8 +2,8 @@ from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 # from .views import OrgnizationView,CountryVIews,GetItemByfield_InputView,continentsView,AddOrgnization,GetOrgByStatus_Pending,GetOrgByStatus_Success,UpdateOrgStatus,Registerview,LoginApiView,GetItemByfields_InputViews,ResetPassword,ForgotOtp,ResendOtp,VerifyOtpView,BlockView,GetVillages,VillageView,DistrictVIew,StateViews,GetbyCountryLocationorganization,GetbyDistrictLocationOrganization,GetbyBlockLocationOrganization,GetItemBystatefield_location,GetIndianOrganizations,GetGlobalOrganizations
-from .views import OrgnizationView,countries_by_Continent,CountryView,GetItemByfield_InputView,continentsView,AddOrgnization,GetOrgByStatus_Pending,GetOrgByStatus_Success,UpdateOrgStatus,Register_LoginView,Validate_LoginOTPView,GetItemByfields_InputViews,MemberDetailsViews,UpdateMemberDetails,DistrictVIew,StateViews,GetOrgbyroot_map,states_by_country,districts_By_State,GetProfileById,GetProfile
-
+# from .views import OrgnizationView,countries_by_Continent,CountryView,GetItemByfield_InputView,continentsView,AddOrgnization,GetOrgByStatus_Pending,GetOrgByStatus_Success,UpdateOrgStatus,Register_LoginView,Validate_LoginOTPView,GetItemByfields_InputViews,MemberDetailsViews,UpdateMemberDetails,DistrictVIew,StateViews,GetOrgbyroot_map,states_by_country,districts_By_State,GetProfileById,GetProfile
+from .views import *
 
 
 
@@ -13,6 +13,8 @@ router.register(r'countries',CountryView)
 router.register(r'continents',continentsView)
 router.register(r'state',StateViews)  
 router.register(r"district",DistrictVIew)
+router.register(r'category',CategoryView)
+router.register(r'subcategory',SubCategoryView)
 # router.register(r"block",BlockView)
 # router.register(r"village",VillageView)
 # router.register(r"allvillages",GetVillages, basename="allvillages_extra")
@@ -52,7 +54,8 @@ urlpatterns=[
     path('districts_by_state/<str:state>/', districts_By_State.as_view(), name='districts_by_state'),
     path('profile_get_by_id/<str:id>/',GetProfileById.as_view()),
     path('profile_get/',GetProfile.as_view()),
-
+    path('category', CategoryView.as_view({'get': 'list'})),
+    path('subcategory', SubCategoryView.as_view({'get': 'list'})),
     
     # path('organization/state_id/<str:state_id>/', GetItemBystatefield_location.as_view()),
     # path('organization/district_id/<str:district_id>/', GetbyBlockLocationOrganization.as_view()),
