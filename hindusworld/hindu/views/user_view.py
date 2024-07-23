@@ -99,73 +99,7 @@ class MemberDetailsViews(viewsets.ModelViewSet):
     serializer_class = MemberPicSerializer
     permission_classes = [IsAuthenticated]
 
-# class UpdateMemberDetails(generics.GenericAPIView):
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = MemberSerializer
 
-#     def put(self, request, id):
-#         # Retrieve the instance
-#         instance = get_object_or_404(Register, id=id)
-#         # Retrieve profile_pic from request data
-#         profile_pic = request.data.get('profile_pic')
-#         # Make a mutable copy of request.data and set profile_pic to "null"
-#         mutable_data = request.data.copy()
-#         mutable_data['profile_pic'] = "profile_pic"
-#         # Instantiate the serializer with the mutable copy of data
-#         serializer = self.get_serializer(instance, data=mutable_data)
-#         serializer.is_valid(raise_exception=True)
-#         serializer.validated_data['is_member'] = True
-#         serializer.save()
-#         # If profile_pic is provided and not "null", save the image
-#         if profile_pic and profile_pic != "null":
-#             saved_location = save_image_to_folder(profile_pic, serializer.instance.id, serializer.instance.full_name, 'profile_pic')
-#             if saved_location:
-#                 serializer.instance.profile_pic = saved_location
-#                 serializer.instance.save()
-#         else:
-#             # Ensure the profile_pic is set to null in the response if not updated
-#             serializer.instance.profile_pic = None
-
-#         # Return the response with the updated data
-#         response_data = MemberSerializer(serializer.instance).data
-#         if not profile_pic or profile_pic == "null":
-#             response_data['profile_pic'] = None
-
-#         return Response(response_data, status=status.HTTP_200_OK)
-
-
-
-# class GetProfile(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         queryset = Register.objects.all()
-#         response_data = []
-#         for item in queryset:
-#             profile_pic_path = item.profile_pic
-#             if profile_pic_path:
-#                 encoded_string = image_path_to_binary(profile_pic_path)
-#                 if encoded_string:
-#                     item_data = MemberPicSerializer(item).data
-#                     item_data['profile_pic'] = encoded_string
-#                     response_data.append(item_data)
-#         return Response(response_data, status=status.HTTP_200_OK)
-
-# class GetProfileById(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, id):
-#         queryset = Register.objects.filter(id=id)
-#         response_data = []
-#         for item in queryset:
-#             profile_pic_path = item.profile_pic
-#             if profile_pic_path:
-#                 encoded_string = image_path_to_binary(profile_pic_path)
-#                 if encoded_string:
-#                     item_data = MemberPicSerializer(item).data
-#                     item_data['profile_pic'] = encoded_string
-#                     response_data.append(item_data)
-#         return Response(response_data, status=status.HTTP_200_OK)
 
 
 
@@ -178,15 +112,24 @@ class GetProfile(APIView):
         response_data = []
         for item in queryset:
             profile_pic_path = item.profile_pic
-            if profile_pic_path:
+            if profile_pic_path:  # Only process if profile_pic_path is not None or empty
                 encoded_string = image_path_to_binary(profile_pic_path)
                 if encoded_string:
                     item_data = MemberSerializer(item).data
-                    item_data['profile_pic'] = encoded_string
+                    item_data['profile_pic'] = encoded_string.decode('utf-8')  # Ensure proper decoding to string
                     response_data.append(item_data)
+                else:
+                    item_data = MemberSerializer(item).data
+                    item_data['profile_pic'] = None  # Handle case where encoding fails
+                    response_data.append(item_data)
+            else:
+                item_data = MemberSerializer(item).data
+                item_data['profile_pic'] = None  # Explicitly set to None if there's no profile_pic_path
+                response_data.append(item_data)
+                
         return Response(response_data, status=status.HTTP_200_OK)
 
-
+    
 class GetProfileById(APIView):
     permission_classes = [IsAuthenticated]
 

@@ -34,7 +34,7 @@ class OrgnisationSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         # Fields to check for empty or null values
-        fields_to_check = ['org_images', 'org_logo', 'chairman', 'web_url', 'est_by','country','reg_id','est_date','location','organization_name','web_url','org_detail','geo_site','organization_members']
+        fields_to_check = ['org_images', 'org_logo', 'chairman', 'web_url', 'est_by','country','reg_id','est_date','location','organization_name','web_url','org_detail','geo_site','organization_members','category_id','sub_category_id','object_id']
         for field in fields_to_check:
             if representation.get(field) in [None, '', 'null','-']:
                 representation[field] = "data not found"

@@ -21,20 +21,44 @@ class CustomPagination(PageNumberPagination):
 
 
 
+# def image_path_to_binary(filename):
+#     img_url = settings.FILE_URL
+#     print("kkkkk",img_url)
+#     img_path = os.path.join(img_url, filename) # Assuming settings.MEDIA_ROOT contains the directory where your images are stored
+#     print(img_path, "---------------------------------")
+#     if os.path.exists(img_path):
+#         with open(img_path, "rb") as image_file:
+#             image_data = image_file.read()
+#             base64_encoded_image = base64.b64encode(image_data)
+#             # print(base64_encoded_image)
+#             return base64_encoded_image
+#     else:
+#         # print("File not found:", img_path)
+#         return None
+
+
+### to get the data even if the image is present or not present
 def image_path_to_binary(filename):
     img_url = settings.FILE_URL
-    print("kkkkk",img_url)
-    img_path = os.path.join(img_url, filename) # Assuming settings.MEDIA_ROOT contains the directory where your images are stored
-    print(img_path, "---------------------------------")
+    img_path = os.path.join(img_url, filename)  # Assuming settings.FILE_URL contains the directory where your images are stored
+
+    # Add debug logging to help identify the issue
+    print(f"Attempting to access image at path: {img_path}")
+    
     if os.path.exists(img_path):
-        with open(img_path, "rb") as image_file:
-            image_data = image_file.read()
-            base64_encoded_image = base64.b64encode(image_data)
-            # print(base64_encoded_image)
-            return base64_encoded_image
+        try:
+            with open(img_path, "rb") as image_file:
+                image_data = image_file.read()
+                base64_encoded_image = base64.b64encode(image_data)
+                return base64_encoded_image
+        except PermissionError as e:
+            print(f"Permission denied: {e}")
+            return None
     else:
-        # print("File not found:", img_path)
+        print(f"File not found: {img_path}")
         return None
+
+
 def save_image_to_folder(image_location, _id, name,entity_type):
     # Decode the base64 image data
     image_data = base64.b64decode(image_location)
