@@ -13,4 +13,4 @@ class SubCategory(models.Model):
 
     class Meta:
         managed=False
-        db_table = 'category'
+        db_table = 'sub_category'
