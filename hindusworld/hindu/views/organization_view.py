@@ -22,10 +22,10 @@ from datetime import datetime
 
 
 
-class OrgnizationView(viewsets.ModelViewSet):
-    queryset = Organization.objects.all()
-    serializer_class = OrgnisationSerializer
-    pagination_class = OrganizationPagination
+# class OrgnizationView(viewsets.ModelViewSet):
+#     queryset = Organization.objects.all()
+#     serializer_class = OrgnisationSerializer
+#     pagination_class = OrganizationPagination
 
 
 
@@ -106,6 +106,7 @@ class AddOrgnization(generics.GenericAPIView):
             # Handle organization images and logo if provided
             org_images = request.data.get('org_images')
             org_logo = request.data.get('org_logo')
+            govt_id_proof=request.data.get('govt_id_proof')
 
             if org_images and org_images != "null":
                 saved_location = save_image_to_folder(org_images, serializer.instance._id, serializer.instance.organization_name,'hinduworldimages')
@@ -117,6 +118,14 @@ class AddOrgnization(generics.GenericAPIView):
                 saved_logo_location = save_image_to_folder(org_logo, serializer.instance._id, serializer.instance.organization_name,'hinduworldlogos')
                 if saved_logo_location:
                     serializer.instance.org_logo = saved_logo_location
+
+
+
+
+            if govt_id_proof and govt_id_proof != "null":
+                saved_govt_id_proof_location = save_image_to_folder(govt_id_proof, serializer.instance._id, serializer.instance.organization_name, 'hinduworldgovt_id_proof')
+                if saved_govt_id_proof_location:
+                     serializer.instance.govt_id_proof = saved_govt_id_proof_location
 
             serializer.instance.save()
 
@@ -250,28 +259,28 @@ class AddOrgnization(generics.GenericAPIView):
 
 
 
-class GetItemByfield_InputView(generics.GenericAPIView):
-    serializer_class = OrgnisationSerializer
-    pagination_class = orgByCountryPagination
+# class GetItemByfield_InputView(generics.GenericAPIView):
+#     serializer_class = OrgnisationSerializer
+#     pagination_class = orgByCountryPagination
 
-    def get(self, request, input_value, field_name):
-        try:
-            field_names = [field.name for field in Organization._meta.get_fields()]
-            if field_name in field_names:
-                filter_kwargs = {field_name: input_value}
-                queryset = Organization.objects.filter(**filter_kwargs)
-                serialized_data = OrgnisationSerializer(queryset, many=True)
-                return Response(serialized_data.data)
-            else:
-                return Response({
-                    'message': 'Invalid field name',
-                    'status': 400
-                })
-        except Organization.DoesNotExist:
-            return Response({
-                'message': 'Object not found',
-                'status': 404
-            })
+#     def get(self, request, input_value, field_name):
+#         try:
+#             field_names = [field.name for field in Organization._meta.get_fields()]
+#             if field_name in field_names:
+#                 filter_kwargs = {field_name: input_value}
+#                 queryset = Organization.objects.filter(**filter_kwargs)
+#                 serialized_data = OrgnisationSerializer(queryset, many=True)
+#                 return Response(serialized_data.data)
+#             else:
+#                 return Response({
+#                     'message': 'Invalid field name',
+#                     'status': 400
+#                 })
+#         except Organization.DoesNotExist:
+#             return Response({
+#                 'message': 'Object not found',
+#                 'status': 404
+#             })
         
 
 
@@ -454,24 +463,27 @@ class CustomPagination(pagination.PageNumberPagination):
     max_page_size = 1000 
 
 
-class GetOrgbyroot_map(generics.ListAPIView):
+    
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.exceptions import FieldDoesNotExist
+
+class OrgnizationView(viewsets.ModelViewSet):
+    queryset = Organization.objects.all()
     serializer_class = OrgnisationSerializer
-    pagination_class = CustomPagination
+    pagination_class = OrganizationPagination
 
-    def get_queryset(self):
-        input_value = self.kwargs.get('input_value')
-
+    @action(detail=False, methods=['get'], url_path='filter/(?P<input_value>[^/.]+)')
+    def get_org_by_root_map(self, request, input_value=None):
         if not input_value:
             raise ValidationError("Input value is required")
 
-        # Define queries for each level using the correct field lookups
         continent_query = Q(object_id__state__country__continent__pk=input_value)
         country_query = Q(object_id__state__country__pk=input_value)
         state_query = Q(object_id__state__pk=input_value)
         district_query = Q(object_id__pk=input_value)
-      
 
-        # Combine queries with OR operator
         combined_query = (
             continent_query | country_query | state_query |
             district_query 
@@ -483,11 +495,6 @@ class GetOrgbyroot_map(generics.ListAPIView):
             'object_id__state',
             'object_id'
         )
-
-        return queryset
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -495,3 +502,34 @@ class GetOrgbyroot_map(generics.ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='by-field/(?P<field_name>[^/.]+)/(?P<input_value>[^/.]+)')
+    def get_item_by_field(self, request, field_name=None, input_value=None):
+        if not input_value or not field_name:
+            return Response({
+                'message': 'Field name and input value are required',
+                'status': 400
+            })
+
+        try:
+            field_names = [field.name for field in Organization._meta.get_fields()]
+            if field_name in field_names:
+                filter_kwargs = {field_name: input_value}
+                queryset = Organization.objects.filter(**filter_kwargs)
+                page = self.paginate_queryset(queryset)
+                if page is not None:
+                    serializer = self.get_serializer(page, many=True)
+                    return self.get_paginated_response(serializer.data)
+
+                serializer = self.get_serializer(queryset, many=True)
+                return Response(serializer.data)
+            else:
+                return Response({
+                    'message': 'Invalid field name',
+                    'status': 400
+                })
+        except FieldDoesNotExist:
+            return Response({
+                'message': 'Field does not exist',
+                'status': 400
+            })

@@ -23,7 +23,7 @@ router.register(r'subcategory',SubCategoryView)
 urlpatterns=[
 
     path('',include(router.urls)),
-    path('organization_get/<str:field_name>/<str:input_value>', GetItemByfield_InputView.as_view()),
+    # path('organization_get/<str:field_name>/<str:input_value>', GetItemByfield_InputView.as_view()),
     path('organizations_get/<str:field_name1>/<str:input_value1>/<str:field_name2>/<str:input_value2>', GetItemByfields_InputViews.as_view()),
     path('addOrgnization',AddOrgnization.as_view()),
     path('updateStatusOrgnization/<str:org_id>',UpdateOrgStatus.as_view()),
@@ -32,7 +32,7 @@ urlpatterns=[
     path('get_org_by_success',GetOrgByStatus_Success.as_view()),
     # path('indian_org',GetIndianOrganizations.as_view()),
     # path('international_org',GetGlobalOrganizations.as_view()),
-    path('root_map_org/<str:input_value>/',GetOrgbyroot_map.as_view()),
+    # path('root_map_org/<str:input_value>/',GetOrgbyroot_map.as_view()),
     # path('root_map_org/<str:field_name>/<str:input_value>', GetOrgbyroot_map.as_view()),
   
     # path('count/<str:country_id>',CountsView.as_view()),

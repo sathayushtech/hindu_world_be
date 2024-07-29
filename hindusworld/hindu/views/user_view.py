@@ -103,10 +103,8 @@ class MemberDetailsViews(viewsets.ModelViewSet):
 
 
 
-
 class GetProfile(APIView):
     permission_classes = [IsAuthenticated]
-
     def get(self, request):
         queryset = Register.objects.all()
         response_data = []
@@ -126,8 +124,14 @@ class GetProfile(APIView):
                 item_data = MemberSerializer(item).data
                 item_data['profile_pic'] = None  # Explicitly set to None if there's no profile_pic_path
                 response_data.append(item_data)
-                
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
 
     
 class GetProfileById(APIView):
