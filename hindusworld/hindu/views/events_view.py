@@ -1,0 +1,88 @@
+from rest_framework import viewsets,generics
+from ..models import Events
+from ..serializers import EventsSerializer,EventsSerializer1
+from ..models import Organization, Country,Continent,Register,District,Events
+from rest_framework import status
+from rest_framework import status as http_status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.db.models import Q
+from django.core.mail import send_mail
+from django.conf import settings
+from datetime import datetime
+from ..utils import save_image_to_folder
+
+
+
+
+class EventsViewSet(viewsets.ModelViewSet):
+    queryset = Events.objects.all()
+    serializer_class = EventsSerializer1
+
+
+
+
+class AddEventView(generics.GenericAPIView):
+    serializer_class = EventsSerializer1
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            # Fetch the Register instance for the logged-in user
+            username = request.user.username
+            register_instance = Register.objects.get(username=username)
+            is_member = register_instance.is_member
+
+            # Check if the user is a member
+            if is_member == "FALSE":
+                return Response({
+                    "message": "Cannot create event. Membership details are required. Update your profile and become a member."
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Capture the current time
+            created_at = datetime.now()
+
+            # Proceed with event creation
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            
+            # Handle event images/files if provided
+            brochure = request.data.get('brochure')
+
+            if brochure and brochure != "null":
+                saved_brochure_location = save_image_to_folder(brochure, serializer.instance._id, serializer.instance.name, 'eventbrochures')
+                if saved_brochure_location:
+                    serializer.instance.brochure = saved_brochure_location
+
+            serializer.instance.save()
+
+            # Send email to EMAIL_HOST_USER
+            send_mail(
+                'New Event Added',
+                f'User ID: {request.user.id}\n'
+                f'Contact Number: {register_instance.contact_number}\n'
+                f'Full Name: {request.user.get_full_name()}\n'
+                f'Created Time: {created_at.strftime("%Y-%m-%d %H:%M:%S")}\n'
+                f'Event ID: {serializer.instance._id}\n'
+                f'Event Name: {serializer.instance.name}',
+                settings.EMAIL_HOST_USER,
+                [settings.EMAIL_HOST_USER],
+                fail_silently=False,
+            )
+
+            return Response({
+                "message": "Event added successfully.",
+                "result": serializer.data
+            }, status=status.HTTP_201_CREATED)
+
+        except Register.DoesNotExist:
+            return Response({
+                "message": "User not found."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            return Response({
+                "message": "An error occurred.",
+                "error": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
