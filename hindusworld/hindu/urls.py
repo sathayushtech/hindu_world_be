@@ -15,6 +15,8 @@ router.register(r'state',StateViews)
 router.register(r"district",DistrictVIew)
 router.register(r'category',CategoryView)
 router.register(r'subcategory',SubCategoryView)
+router.register(r'events', EventsViewSet, basename='events')
+
 # router.register(r"block",BlockView)
 # router.register(r"village",VillageView)
 # router.register(r"allvillages",GetVillages, basename="allvillages_extra")
@@ -56,6 +58,8 @@ urlpatterns=[
     path('profile_get/',GetProfile.as_view()),
     path('category', CategoryView.as_view({'get': 'list'})),
     path('subcategory', SubCategoryView.as_view({'get': 'list'})),
+    path('addevents', AddEventView.as_view(), name='add-event'),
+
     
     # path('organization/state_id/<str:state_id>/', GetItemBystatefield_location.as_view()),
     # path('organization/district_id/<str:district_id>/', GetbyBlockLocationOrganization.as_view()),

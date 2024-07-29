@@ -11,7 +11,6 @@ from rest_framework.generics import ListAPIView
 from rest_framework import status
 from rest_framework import status as http_status
 from rest_framework.permissions import IsAuthenticated
-import uuid
 from ..location_tree import get_location_hierarchy
 from rest_framework.exceptions import ValidationError
 from django.db.models import Q
@@ -123,7 +122,7 @@ class AddOrgnization(generics.GenericAPIView):
 
 
             if govt_id_proof and govt_id_proof != "null":
-                saved_govt_id_proof_location = save_image_to_folder(govt_id_proof, serializer.instance._id, serializer.instance.organization_name, 'hinduworldgovt_id_proof')
+                saved_govt_id_proof_location = save_image_to_folder(govt_id_proof, serializer.instance._id, serializer.instance.organization_name,'orgdocument')
                 if saved_govt_id_proof_location:
                      serializer.instance.govt_id_proof = saved_govt_id_proof_location
 
