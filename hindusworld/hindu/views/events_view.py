@@ -29,8 +29,9 @@ class AddEventView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            # Fetch the Register instance for the logged-in user
             username = request.user.username
+            print(f"Username: {username}")
+
             register_instance = Register.objects.get(username=username)
             is_member = register_instance.is_member
 
