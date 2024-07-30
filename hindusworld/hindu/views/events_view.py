@@ -11,6 +11,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from datetime import datetime
 from ..utils import save_image_to_folder
+from django.utils import timezone
+
 
 
 
@@ -21,15 +23,15 @@ class EventsViewSet(viewsets.ModelViewSet):
 
 
 
-
 class AddEventView(generics.GenericAPIView):
-    serializer_class = EventsSerializer1
+    serializer_class = EventsSerializer
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         try:
-            # Fetch the Register instance for the logged-in user
             username = request.user.username
+            print(f"Username: {username}")
+
             register_instance = Register.objects.get(username=username)
             is_member = register_instance.is_member
 
@@ -40,14 +42,14 @@ class AddEventView(generics.GenericAPIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             # Capture the current time
-            created_at = datetime.now()
+            created_at = timezone.now()
 
             # Proceed with event creation
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            
-            # Handle event images/files if provided
+
+            # Handle event brochure if provided
             brochure = request.data.get('brochure')
 
             if brochure and brochure != "null":
