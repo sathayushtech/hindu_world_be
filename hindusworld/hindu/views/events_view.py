@@ -22,7 +22,6 @@ class EventsViewSet(viewsets.ModelViewSet):
     serializer_class = EventsSerializer1
 
 
-
 class AddEventView(generics.GenericAPIView):
     serializer_class = EventsSerializer
     permission_classes = [IsAuthenticated]
@@ -51,13 +50,22 @@ class AddEventView(generics.GenericAPIView):
 
             # Handle event brochure if provided
             brochure = request.data.get('brochure')
-
             if brochure and brochure != "null":
                 saved_brochure_location = save_image_to_folder(brochure, serializer.instance._id, serializer.instance.name, 'eventbrochures')
                 if saved_brochure_location:
                     serializer.instance.brochure = saved_brochure_location
 
-            serializer.instance.save()
+            # Handle event images if provided
+            event_images = request.data.get('event_images', [])
+            if event_images:
+                saved_event_image_paths = []
+                for image_data in event_images:
+                    if image_data and image_data != "null":
+                        saved_location = save_image_to_folder(image_data, serializer.instance._id, serializer.instance.name, 'eventimages')
+                        if saved_location:
+                            saved_event_image_paths.append(saved_location)
+                serializer.instance.event_images = saved_event_image_paths
+                serializer.instance.save()
 
             # Send email to EMAIL_HOST_USER
             send_mail(
