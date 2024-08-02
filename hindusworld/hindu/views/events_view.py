@@ -1,6 +1,6 @@
 from rest_framework import viewsets,generics
 from ..models import Events
-from ..serializers import EventsSerializer,EventsSerializer1
+from ..serializers import EventsSerializer,EventsSerializer1,EventSerializer2
 from ..models import Organization, Country,Continent,Register,District,Events
 from rest_framework import status
 from rest_framework import status as http_status
@@ -96,3 +96,45 @@ class AddEventView(generics.GenericAPIView):
                 "message": "An error occurred.",
                 "error": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+
+
+
+
+
+
+class UpdateEventStatus(generics.GenericAPIView):
+    serializer_class = EventSerializer2
+
+    def put(self, request, event_id):
+        try:
+            event = Events.objects.get(pk=event_id, status='PENDING')
+        except Events.DoesNotExist:
+            return Response({
+                'message': 'Event with PENDING status not found for the provided ID'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        # Update the status to 'SUCCESS'
+        event.status = 'SUCCESS'
+        event.save()
+
+        # Serialize the updated event
+        serializer = self.get_serializer(event)
+
+        return Response({
+            'message': 'success',
+            'result': serializer.data
+        }, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+
+
+
