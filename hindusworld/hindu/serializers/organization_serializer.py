@@ -34,7 +34,13 @@ class OrgnisationSerializer(serializers.ModelSerializer):
         model = Organization
         fields = '__all__'
     
-
+    # def to_representation(self, instance):
+    #     representation = super().to_representation(instance)
+    #     if representation.get('org_images') in [None, 'null']:
+    #         representation['org_images'] = "image not found"
+    #     if representation.get('org_logo') in [None, 'null']:
+    #         representation['org_logo'] = "image not found"
+    #         return representation
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
