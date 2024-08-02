@@ -8,4 +8,5 @@ from .district_serializer import DistrictSerializer
 # from .village_serializers import VillageSerializer
 from .category_serializer import CategorySerializer
 from .sub_category_serializer import SubCategorySerializer
-from .event_serializers import EventsSerializer,EventsSerializer1
+from .event_serializers import EventsSerializer,EventsSerializer1,EventSerializer2
+from .training_serializers import TrainingSerializer

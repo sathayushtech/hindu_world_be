@@ -468,6 +468,80 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.core.exceptions import FieldDoesNotExist
 
+# class OrgnizationView(viewsets.ModelViewSet):
+#     queryset = Organization.objects.all()
+#     serializer_class = OrgnisationSerializer
+#     pagination_class = OrganizationPagination
+
+#     @action(detail=False, methods=['get'], url_path='filter/(?P<input_value>[^/.]+)')
+#     def get_org_by_root_map(self, request, input_value=None):
+#         if not input_value:
+#             raise ValidationError("Input value is required")
+
+#         continent_query = Q(object_id__state__country__continent__pk=input_value)
+#         country_query = Q(object_id__state__country__pk=input_value)
+#         state_query = Q(object_id__state__pk=input_value)
+#         district_query = Q(object_id__pk=input_value)
+
+#         combined_query = (
+#             continent_query | country_query | state_query |
+#             district_query 
+#         )
+
+#         queryset = Organization.objects.filter(combined_query).select_related(
+#             'object_id__state__country__continent',
+#             'object_id__state__country',
+#             'object_id__state',
+#             'object_id'
+#         )
+#         page = self.paginate_queryset(queryset)
+#         if page is not None:
+#             serializer = self.get_serializer(page, many=True)
+#             return self.get_paginated_response(serializer.data)
+
+#         serializer = self.get_serializer(queryset, many=True)
+#         return Response(serializer.data)
+
+#     @action(detail=False, methods=['get'], url_path='by-field/(?P<field_name>[^/.]+)/(?P<input_value>[^/.]+)')
+#     def get_item_by_field(self, request, field_name=None, input_value=None):
+#         if not input_value or not field_name:
+#             return Response({
+#                 'message': 'Field name and input value are required',
+#                 'status': 400
+#             })
+
+#         try:
+#             field_names = [field.name for field in Organization._meta.get_fields()]
+#             if field_name in field_names:
+#                 filter_kwargs = {field_name: input_value}
+#                 queryset = Organization.objects.filter(**filter_kwargs)
+#                 page = self.paginate_queryset(queryset)
+#                 if page is not None:
+#                     serializer = self.get_serializer(page, many=True)
+#                     return self.get_paginated_response(serializer.data)
+
+#                 serializer = self.get_serializer(queryset, many=True)
+#                 return Response(serializer.data)
+#             else:
+#                 return Response({
+#                     'message': 'Invalid field name',
+#                     'status': 400
+#                 })
+#         except FieldDoesNotExist:
+#             return Response({
+#                 'message': 'Field does not exist',
+#                 'status': 400
+#             })
+
+
+
+
+
+
+
+
+
+
 class OrgnizationView(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrgnisationSerializer
@@ -483,10 +557,7 @@ class OrgnizationView(viewsets.ModelViewSet):
         state_query = Q(object_id__state__pk=input_value)
         district_query = Q(object_id__pk=input_value)
 
-        combined_query = (
-            continent_query | country_query | state_query |
-            district_query 
-        )
+        combined_query = continent_query | country_query | state_query | district_query
 
         queryset = Organization.objects.filter(combined_query).select_related(
             'object_id__state__country__continent',
@@ -494,6 +565,11 @@ class OrgnizationView(viewsets.ModelViewSet):
             'object_id__state',
             'object_id'
         )
+
+        # Check if queryset is empty and filter directly by object_id
+        if not queryset.exists():
+            queryset = Organization.objects.filter(object_id=input_value)
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -507,7 +583,7 @@ class OrgnizationView(viewsets.ModelViewSet):
         if not input_value or not field_name:
             return Response({
                 'message': 'Field name and input value are required',
-                'status': 400
+                'status': status.HTTP_400_BAD_REQUEST
             })
 
         try:
@@ -525,10 +601,10 @@ class OrgnizationView(viewsets.ModelViewSet):
             else:
                 return Response({
                     'message': 'Invalid field name',
-                    'status': 400
+                    'status': status.HTTP_400_BAD_REQUEST
                 })
         except FieldDoesNotExist:
             return Response({
                 'message': 'Field does not exist',
-                'status': 400
+                'status': status.HTTP_400_BAD_REQUEST
             })

@@ -25,3 +25,12 @@ class EventsSerializer1(serializers.ModelSerializer):
     class Meta:
         model = Events
         fields = '__all__'
+
+
+
+
+class EventSerializer2(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Events
+        fields = ['status']        
