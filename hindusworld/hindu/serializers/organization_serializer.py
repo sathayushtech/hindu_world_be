@@ -7,7 +7,7 @@ from ..utils import image_path_to_binary
 class OrgnisationSerializer(serializers.ModelSerializer):
     org_images = serializers.SerializerMethodField()
     org_logo = serializers.SerializerMethodField()
-    govt_id_proof = serializers.SerializerMethodField()  # New field for government-issued ID proof
+    govt_id_proof = serializers.SerializerMethodField()  
 
     def get_org_images(self, instance):
         filename = instance.org_images
@@ -45,7 +45,7 @@ class OrgnisationSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         # Fields to check for empty or null values
-        fields_to_check = ['org_images', 'org_logo', 'chairman', 'web_url', 'est_by','country','reg_id','est_date','location','organization_name','web_url','org_detail','geo_site','organization_members','sub_category_id','object_id','govt_id_proof']
+        fields_to_check = ['org_images', 'org_logo', 'chairman', 'web_url', 'est_by','reg_id','est_date','location','organization_name','web_url','org_detail','geo_site','organization_members','sub_category_id','object_id','govt_id_proof']
         for field in fields_to_check:
             if representation.get(field) in [None, '', 'null','-']:
                 representation[field] = "data not found"

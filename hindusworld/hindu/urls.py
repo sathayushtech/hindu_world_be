@@ -62,7 +62,7 @@ urlpatterns=[
     # path('subcategory', SubCategoryView.as_view({'get': 'list'})),
     path('addevents', AddEventView.as_view(), name='add-event'),
     path('eventsupdatestatus/<uuid:event_id>/', UpdateEventStatus.as_view(), name='update-event-status'),
-    path('trainingupdatestatus/<str:_id>/update-status/', UpdateTrainingStatus.as_view(), name='update-training-status'),
+    path('trainingupdatestatus/<uuid:training_id>/update-status/', UpdateTrainingStatus.as_view(), name='update-training-status'),
 
 
 
