@@ -1,6 +1,6 @@
 from rest_framework import viewsets, generics, status
 from ..models import Training,Register
-from ..serializers import TrainingSerializer
+from ..serializers import TrainingSerializer,TrainingSerializer2
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.core.mail import send_mail
@@ -273,12 +273,26 @@ class TrainingView(viewsets.ModelViewSet):
 
 
 
-class UpdateTrainingStatus(generics.GenericAPIView):
-    serializer_class = TrainingSerializer
 
-    def put(self, request, _id):
-        instance = get_object_or_404(Training, _id=_id)
-        serializer = TrainingSerializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        instance = serializer.save()
-        return Response(TrainingSerializer(instance).data, status=status.HTTP_200_OK)
+class UpdateTrainingStatus(generics.GenericAPIView):
+    serializer_class = TrainingSerializer2
+
+    def put(self, request, training_id):
+        try:
+            training = Training.objects.get(pk=training_id, status='PENDING')
+        except Training.DoesNotExist:
+            return Response({
+                'message': 'Training with PENDING status not found for the provided ID'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        # Update the status to 'SUCCESS'
+        training.status = 'SUCCESS'
+        training.save()
+
+        # Serialize the updated training
+        serializer = self.get_serializer(training)
+
+        return Response({
+            'message': 'success',
+            'result': serializer.data
+        }, status=status.HTTP_200_OK)

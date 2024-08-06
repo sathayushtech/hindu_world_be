@@ -8,5 +8,7 @@ from .category import Category
 from .sub_category import SubCategory
 from .event import Events
 from .training import Training
+from .event_category import EventCategory
+from .training_category import TrainingCategory
 # from .block import Block
 # from .village import Village

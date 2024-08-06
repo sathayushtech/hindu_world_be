@@ -12,3 +12,5 @@ from .category_view import CategoryView
 from .sub_category_view import SubCategoryView
 from .events_view import EventsViewSet,AddEventView,UpdateEventStatus
 from .training_view import TrainingView,UpdateTrainingStatus
+from .event_category_view import EventCategoryView
+from .training_category_view import TrainingCategoryView
