@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from ..models import Organization
+from .event_category import EventCategory  
 from ..enums import status
 from django.utils.timesince import timesince
 from django.utils import timezone
@@ -19,6 +20,8 @@ class Events(models.Model):
     status=models.CharField(db_column='status',max_length=50,choices=[(e.name,e.value) for e in status],default=status.PENDING.value)
     event_images=models.JSONField(db_column='event_images',default=list,blank=True)
     live_stream_link=models.CharField(db_column='live_stream_link',max_length=100,null=True,blank=True)
+    category = models.ForeignKey(EventCategory, db_column='category', on_delete=models.CASCADE, null=True, blank=True)
+
 
 
     @property

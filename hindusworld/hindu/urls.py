@@ -17,6 +17,9 @@ router.register(r'category',CategoryView)
 router.register(r'subcategory',SubCategoryView)
 router.register(r'events', EventsViewSet, basename='events')
 router.register(r'training', TrainingView, basename='training')
+router.register("eventcategory",EventCategoryView)
+router.register("trainingcategory",TrainingCategoryView)
+
 
 
 # router.register(r"block",BlockView)
