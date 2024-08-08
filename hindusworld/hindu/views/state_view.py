@@ -3,12 +3,16 @@ from ..serializers import StateSeerializer
 from rest_framework import viewsets
 from rest_framework .response import Response
 from rest_framework import generics,status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
+
 
 
 class StateViews(viewsets.ModelViewSet):
     queryset = State.objects.all()
     serializer_class = StateSeerializer
-
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['name', 'country']  # Add the fields you want to search by
 
     def list(self, request):
         filter_kwargs = {}
@@ -28,6 +32,11 @@ class StateViews(viewsets.ModelViewSet):
                     'status': 404
                 })
 
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
             serialized_data = StateSeerializer(queryset, many=True)
             return Response(serialized_data.data)
 
@@ -36,9 +45,6 @@ class StateViews(viewsets.ModelViewSet):
                 'message': 'Objects not found',
                 'status': 404
             })
-    
-
-
 
 
 
