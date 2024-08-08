@@ -76,3 +76,26 @@ class OrganizationSerializer3(serializers.ModelSerializer):
  
     image_location = serializers.SerializerMethodField()
     # object_id=serializers.SerializerMethodField()
+
+
+
+
+
+
+class OrganizationSerializer4(serializers.ModelSerializer):
+    org_logo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Organization
+        fields = ['_id','organization_name', 'org_logo', 'chairman','web_url', 'reg_id']
+
+    def get_org_logo(self, obj):
+        if obj.org_logo:
+            return image_path_to_binary(obj.org_logo)
+        return None
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # 'org_logo' is already handled by get_org_logo method
+        return representation
+

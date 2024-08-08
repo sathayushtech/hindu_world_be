@@ -3,7 +3,7 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from ..models import Organization, Country,Continent,Register,District
-from ..serializers.organization_serializer import OrgnisationSerializer,OrgnisationSerializer1,OrgnisationSerializer2,OrganizationSerializer3
+from ..serializers.organization_serializer import OrgnisationSerializer,OrgnisationSerializer1,OrgnisationSerializer2,OrganizationSerializer3,OrganizationSerializer4
 from ..utils import save_image_to_folder
 from ..pagination.org_pagination import OrganizationPagination
 from ..pagination.orgbycountry_pagination import orgByCountryPagination
@@ -17,6 +17,10 @@ from django.db.models import Q
 from django.core.mail import send_mail
 from django.conf import settings
 from datetime import datetime
+from django.shortcuts import get_object_or_404
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 
 
@@ -535,17 +539,23 @@ from django.core.exceptions import FieldDoesNotExist
 
 
 
-
-
-
-
-
-
-
 class OrgnizationView(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
-    serializer_class = OrgnisationSerializer
+    serializer_class = OrganizationSerializer4
     pagination_class = OrganizationPagination
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = [
+        'organization_name', 
+        'object_id__state__name', 
+        'object_id__state__country__name', 
+        'object_id__state__country__continent__name'
+    ]
+
+    @action(detail=True, methods=['get'], url_path='/')
+    def get_org_by_id(self, request, pk=None):
+        organization = get_object_or_404(Organization, pk=pk)
+        serializer = OrganizationSerializer4(organization)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path='filter/(?P<input_value>[^/.]+)')
     def get_org_by_root_map(self, request, input_value=None):

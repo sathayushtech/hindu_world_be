@@ -1,8 +1,8 @@
 from rest_framework import viewsets, generics
-from ..models import Category
-from ..serializers.category_serializer import CategorySerializer
+from ..models import TrainingCategory
+from ..serializers.training_category_serializers import TrainingCategorySerializer
 
 
 class TrainingCategoryView(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+    queryset = TrainingCategory.objects.all()
+    serializer_class = TrainingCategorySerializer

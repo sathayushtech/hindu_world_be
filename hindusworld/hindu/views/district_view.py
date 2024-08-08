@@ -3,20 +3,22 @@ from ..models import District,State
 from ..serializers import DistrictSerializer
 from rest_framework .response import Response
 from rest_framework import generics,status
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 
 class DistrictVIew(viewsets.ModelViewSet):
     queryset = District.objects.all()
     serializer_class = DistrictSerializer
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['name', 'state']  # Add the fields you want to search by
 
     def list(self, request):
         filter_kwargs = {}
 
         for key, value in request.query_params.items():
             filter_kwargs[key] = value
-
-        # if not filter_kwargs:
-        #     return super().list(request)
 
         try:
             queryset = District.objects.filter(**filter_kwargs)
@@ -27,6 +29,11 @@ class DistrictVIew(viewsets.ModelViewSet):
                     'status': 404
                 })
 
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
             serialized_data = DistrictSerializer(queryset, many=True)
             return Response(serialized_data.data)
 
@@ -35,7 +42,8 @@ class DistrictVIew(viewsets.ModelViewSet):
                 'message': 'Objects not found',
                 'status': 404
             })
-        
+
+
 
 
 
