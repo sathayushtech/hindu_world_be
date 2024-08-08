@@ -136,22 +136,39 @@ def save_image_to_folder(image_data, _id, name, entity_type):
 
 
 def save_video_to_folder(video_data, _id, name, entity_type):
-    # Decode base64 video data and save it to a folder
+
     video_binary = base64.b64decode(video_data)
-    folder_path = f'media/{entity_type}/{_id}/'
+    folder_name = str(_id)
+    folder_path = os.path.join(settings.FILE_URL, entity_type, folder_name)
+    
+    # Ensure the directory exists
     os.makedirs(folder_path, exist_ok=True)
-    video_path = os.path.join(folder_path, f'{name}.mp4')
+    
+    video_name = f"{name}_{uuid.uuid4().hex[:8]}.mp4"
+    video_path = os.path.join(folder_path, video_name)
+    
     with open(video_path, 'wb') as video_file:
         video_file.write(video_binary)
-    return video_path
+    
+    relative_video_path = os.path.join(entity_type, folder_name, video_name)
+    return relative_video_path
 
 def video_path_to_binary(video_path):
-    # Convert video file to base64
+
     if not os.path.exists(video_path):
         return None
+    
     with open(video_path, 'rb') as video_file:
         video_binary = base64.b64encode(video_file.read())
+    
     return video_binary
+
+
+
+
+
+
+
 
 
 
