@@ -19,7 +19,6 @@ class Training(models.Model):
     trainer_name=models.CharField(db_column='trainer_name',max_length=100)
     contact_details=models.CharField(db_column='contact_details',max_length=100)
     created_at = models.DateTimeField(db_column='created_at',auto_now_add=True)
-    # organization = models.ForeignKey(Organization, db_column='organization' ,on_delete=models.CASCADE)
     status=models.CharField(db_column='status',max_length=50,choices=[(e.name,e.value) for e in status],default=status.PENDING.value)
     video=models.TextField(db_column='video')
     training_type = models.CharField(db_column='training_type', max_length=7, choices=[(e.value, e.value) for e in TrainingType])  # Add this line

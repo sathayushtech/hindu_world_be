@@ -20,6 +20,18 @@ from datetime import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.exceptions import FieldDoesNotExist
+
+
+from rest_framework import viewsets, pagination
+
+class CustomPagination(pagination.PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 1000 
 
 
 
@@ -212,41 +224,6 @@ class AddOrgnization(generics.GenericAPIView):
 #         })
 
 
-# from rest_framework.pagination import PageNumberPagination
-
-# class GetIndianOrganizations(APIView):
-#     def get(self, request):
-#         indian_location = Village.objects.all()
-#         organization_query_set = Organization.objects.all()
-#         indian_organization = organization_query_set.filter(object_id__in=indian_location)
-       
-
-
-#         paginator = PageNumberPagination()
-#         paginator.page_size = 50 
-#         indian_organizations_page = paginator.paginate_queryset(indian_organization, request)
-
-
-#         indianorganization = OrganizationSerializer3(indian_organizations_page = paginator.paginate_queryset(indian_organization, request)
-# , many=True)
-        
-#         return paginator.get_paginated_response( indianorganization.data)
-    
-
-# from rest_framework.pagination import PageNumberPagination
-
-# class GetGlobalOrganizations(APIView):
-#     def get(self, request):
-#         organization_query_set = Organization.objects.all()
-#         global_organization = organization_query_set.exclude(geo_site__in=['S', 'D', 'B', 'V'])
-
-#         paginator = PageNumberPagination()
-#         paginator.page_size = 50 
-#         global_organization_page = paginator.paginate_queryset(global_organization, request)
-
-#         globaltemples = OrganizationSerializer3(global_organization_page, many=True)
-
-#         return paginator.get_paginated_response( globaltemples.data)
 
 
 
@@ -257,33 +234,28 @@ class AddOrgnization(generics.GenericAPIView):
 
 
 
+class GetItemByfield_InputView(generics.GenericAPIView):
+    serializer_class = OrgnisationSerializer
+    pagination_class = orgByCountryPagination
 
-
-
-
-
-# class GetItemByfield_InputView(generics.GenericAPIView):
-#     serializer_class = OrgnisationSerializer
-#     pagination_class = orgByCountryPagination
-
-#     def get(self, request, input_value, field_name):
-#         try:
-#             field_names = [field.name for field in Organization._meta.get_fields()]
-#             if field_name in field_names:
-#                 filter_kwargs = {field_name: input_value}
-#                 queryset = Organization.objects.filter(**filter_kwargs)
-#                 serialized_data = OrgnisationSerializer(queryset, many=True)
-#                 return Response(serialized_data.data)
-#             else:
-#                 return Response({
-#                     'message': 'Invalid field name',
-#                     'status': 400
-#                 })
-#         except Organization.DoesNotExist:
-#             return Response({
-#                 'message': 'Object not found',
-#                 'status': 404
-#             })
+    def get(self, request, input_value, field_name):
+        try:
+            field_names = [field.name for field in Organization._meta.get_fields()]
+            if field_name in field_names:
+                filter_kwargs = {field_name: input_value}
+                queryset = Organization.objects.filter(**filter_kwargs)
+                serialized_data = OrgnisationSerializer(queryset, many=True)
+                return Response(serialized_data.data)
+            else:
+                return Response({
+                    'message': 'Invalid field name',
+                    'status': 400
+                })
+        except Organization.DoesNotExist:
+            return Response({
+                'message': 'Object not found',
+                'status': 404
+            })
         
 
 
@@ -458,19 +430,10 @@ class GetbyDistrictLocationOrganization(generics.ListAPIView):
 
 
 
-from rest_framework import viewsets, pagination
-
-class CustomPagination(pagination.PageNumberPagination):
-    page_size = 50
-    page_size_query_param = 'page_size'
-    max_page_size = 1000 
 
 
     
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework import status
-from django.core.exceptions import FieldDoesNotExist
+
 
 # class OrgnizationView(viewsets.ModelViewSet):
 #     queryset = Organization.objects.all()
@@ -551,11 +514,11 @@ class OrgnizationView(viewsets.ModelViewSet):
         'object_id__state__country__continent__name'
     ]
 
-    @action(detail=True, methods=['get'], url_path='/')
-    def get_org_by_id(self, request, pk=None):
-        organization = get_object_or_404(Organization, pk=pk)
-        serializer = OrganizationSerializer4(organization)
-        return Response(serializer.data)
+    # @action(detail=True, methods=['get'], url_path='/')
+    # def get_org_by_id(self, request, pk=None):
+    #     organization = get_object_or_404(Organization, pk=pk)
+    #     serializer = OrganizationSerializer4(organization)
+    #     return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path='filter/(?P<input_value>[^/.]+)')
     def get_org_by_root_map(self, request, input_value=None):
