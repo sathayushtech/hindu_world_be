@@ -47,6 +47,10 @@ urlpatterns=[
     path('eventsmain', EventsMain.as_view(), name='events-main'),
     path('organizationsmain', OrganizationMain.as_view(), name='organizations-main'),
     path('trainingsmain', TrainingMain.as_view(), name='trainings-main'),
+    # path('updatetrainer/<uuid:id>/', UpdateTrainerView.as_view(), name='update_trainer'),
+    path('getTrainer/<uuid:id>/',GetTrainerView.as_view()),
+    path('updateTrainer/<uuid:id>/',UpdateTrainer.as_view())
+
 
 
 

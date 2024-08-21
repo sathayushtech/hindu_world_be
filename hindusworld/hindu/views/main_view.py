@@ -6,47 +6,58 @@ from ..models.event import Events
 from ..models.event_category import EventCategory
 from ..models.organization import Organization 
 from ..models.training import Training  
-
-
-
+from ..utils import image_path_to_binary
 
 
 class OrganizationMain(APIView):
     def get(self, request):
         organizations = Organization.objects.all()[:4]  # Retrieve the first 4 organizations globally
-
         organization_serializer = OrgnisationSerializer1(organizations, many=True)
-
+        
+        # Convert organization images and logos to base64
+        for org in organization_serializer.data:
+            # Convert org_images to base64
+            if 'org_images' in org and org['org_images']:
+                org['org_images'] = image_path_to_binary(org['org_images'])
+            
+            # Convert org_logo to base64
+            if 'org_logo' in org and org['org_logo']:
+                org['org_logo'] = image_path_to_binary(org['org_logo'])
+        
         return Response({
             'organizations': organization_serializer.data,
         })
 
 
 
-
-
 class EventsMain(APIView):
     def get(self, request):
-        event_category = EventCategory.objects.all()[:4]
         events = Events.objects.all()[:4]  # Retrieve the first 4 events globally
-
-        # eventcategory = EventCategorySerializer(event_category, many=True)
         events_serializer = EventsSerializer(events, many=True)
-
+        
+        # Convert event images to base64
+        for event in events_serializer.data:
+            if 'event_images' in event and event['event_images']:
+                event['event_images'] = [
+                    image_path_to_binary(img) for img in event['event_images']
+                ]
+            
         return Response({
-            # 'categories': eventcategory.data,
             'events': events_serializer.data,
         })
-
-
 
 
 class TrainingMain(APIView):
     def get(self, request):
         trainings = Training.objects.all()[:4]  # Retrieve the first 4 trainings globally
-
         training_serializer = TrainingSerializer(trainings, many=True)
+        
+        # Convert images and videos to base64
+        for training in training_serializer.data:
+            if 'image' in training and training['image']:
+                training['image'] = image_path_to_binary(training['image'])
 
+            
         return Response({
             'trainings': training_serializer.data,
         })

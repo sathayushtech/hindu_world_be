@@ -180,51 +180,6 @@ class AddOrgnization(generics.GenericAPIView):
 
 
 
-###############changes need to be done for uploading more than one image################
-# class AddOrgnization(generics.CreateAPIView):
-#     serializer_class = OrgnisationSerializer1
-
-#     permission_classes = []
-    
-#     def get_permissions(self):
-#         if self.request.method in ['POST', 'PUT', ]:
-#             return [IsAuthenticated()]
-#         return super().get_permissions()
-
-#     def create(self, request, *args, **kwargs):
-#         images = request.data.get('org_images', [])
-#         images = request.data.get('org_logo', [])
-        
-#         # Temporarily remove images from request data to avoid validation errors
-#         request.data['org_images'] = []
-#         request.data['org_logo'] = []
-
-#         # Serialize data and save temple
-#         serializer = self.get_serializer(data=request.data)
-#         print(serializer,"sssssssssssssssssssss")
-#         serializer.is_valid(raise_exception=True)
-#         serializer.save()
-
-#         saved_image_paths = []
-#         print(saved_image_paths,"iiiiiiiiiiiiiiii")
-#         for image_data in images:
-#             if image_data:
-#                 saved_location = save_image_to_folder(image_data, serializer.instance._id, serializer.instance.name)
-#                 print(saved_location)
-#                 if saved_location:
-#                     saved_image_paths.append(saved_location)
-
-#         if saved_image_paths:
-#             serializer.instance.image_location = saved_image_paths
-#             serializer.instance.save()
-
-#         return Response({
-#             "message": "success",
-#             "result": serializer.data
-#         })
-
-
-
 
 
 

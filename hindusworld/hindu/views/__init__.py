@@ -9,7 +9,7 @@ from .user_view import Register_LoginView,Validate_LoginOTPView,MemberDetailsVie
 from .category_view import CategoryView
 from .sub_category_view import SubCategoryView
 from .events_view import EventsViewSet,AddEventView,UpdateEventStatus
-from .training_view import TrainingView,UpdateTrainingStatus
+from .training_view import TrainingView,UpdateTrainingStatus,UpdateTrainerView,GetTrainerView,UpdateTrainer
 from .event_category_view import EventCategoryView
 from .training_category_view import TrainingCategoryView
 from .main_view import EventsMain,TrainingMain,OrganizationMain
