@@ -134,7 +134,45 @@ class UpdateEventStatus(generics.GenericAPIView):
 
 
 
+ 
 
 
 
+from django.utils import timezone
+from datetime import datetime
 
+class UpcomingEventsView(generics.ListAPIView):
+    serializer_class = EventsSerializer1
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Filter events where start_date is in the future or today
+        today = datetime.now().date()
+
+        # Assuming your dates are in 'DD-MM-YYYY' format, convert them before filtering
+        events = Events.objects.all()
+        upcoming_events = []
+        for event in events:
+            # Parse the start_date correctly
+            start_date = datetime.strptime(event.start_date, '%d-%m-%Y').date()
+            if start_date >= today:
+                upcoming_events.append(event)
+        return upcoming_events
+
+class PastEventsView(generics.ListAPIView):
+    serializer_class = EventsSerializer1
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Filter events where end_date is in the past
+        today = datetime.now().date()
+
+        # Assuming your dates are in 'DD-MM-YYYY' format, convert them before filtering
+        events = Events.objects.all()
+        past_events = []
+        for event in events:
+            # Parse the end_date correctly
+            end_date = datetime.strptime(event.end_date, '%d-%m-%Y').date()
+            if end_date < today:
+                past_events.append(event)
+        return past_events

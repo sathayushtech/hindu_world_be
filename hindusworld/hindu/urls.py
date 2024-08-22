@@ -49,7 +49,9 @@ urlpatterns=[
     path('trainingsmain', TrainingMain.as_view(), name='trainings-main'),
     # path('updatetrainer/<uuid:id>/', UpdateTrainerView.as_view(), name='update_trainer'),
     path('getTrainer/<uuid:id>/',GetTrainerView.as_view()),
-    path('updateTrainer/<uuid:id>/',UpdateTrainer.as_view())
+    path('updateTrainer/<uuid:id>/',UpdateTrainer.as_view()),
+    path('eventsupcoming', UpcomingEventsView.as_view(), name='upcoming-events'),
+    path('eventspast', PastEventsView.as_view(), name='past-events'),
 
 
 
