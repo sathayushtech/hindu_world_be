@@ -21,66 +21,78 @@ class CustomPagination(PageNumberPagination):
 
 
 
-# def image_path_to_binary(filename):
-#     img_url = settings.FILE_URL
-#     print("kkkkk",img_url)
-#     img_path = os.path.join(img_url, filename) # Assuming settings.MEDIA_ROOT contains the directory where your images are stored
-#     print(img_path, "---------------------------------")
-#     if os.path.exists(img_path):
-#         with open(img_path, "rb") as image_file:
-#             image_data = image_file.read()
-#             base64_encoded_image = base64.b64encode(image_data)
-#             # print(base64_encoded_image)
-#             return base64_encoded_image
-#     else:
-#         # print("File not found:", img_path)
-#         return None
 
 
-### to get the data even if the image is present or not present
-# def image_path_to_binary(filename):
-#     img_url = settings.FILE_URL
-#     img_path = os.path.join(img_url, filename)  # Assuming settings.FILE_URL contains the directory where your images are stored
 
-#     # Add debug logging to help identify the issue
-#     print(f"Attempting to access image at path: {img_path}")
-    
-#     if os.path.exists(img_path):
-#         try:
-#             with open(img_path, "rb") as image_file:
-#                 image_data = image_file.read()
-#                 base64_encoded_image = base64.b64encode(image_data)
-#                 return base64_encoded_image
-#         except PermissionError as e:
-#             print(f"Permission denied: {e}")
-#             return None
-#     else:
-#         print(f"File not found: {img_path}")
-#         return None
+def save_file_to_folder(file_data, _id, name, entity_type, file_type):
+    """
+    Saves the file to the appropriate folder and returns the relative path.
+    """
+    decoded_file = base64.b64decode(file_data)
+    folder_name = str(_id)
+    folder_path = os.path.join(settings.FILE_URL, entity_type, folder_name)
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    file_name = f"{name}_{uuid.uuid4().hex[:8]}.{file_type}"
+    file_path = os.path.join(folder_path, file_name)
+    with open(file_path, "wb") as file:
+        file.write(decoded_file)
+    relative_file_path = os.path.join(entity_type, folder_name, file_name)
+    return relative_file_path
+def file_path_to_binary(file_path):
+    """
+    Converts the file at the given path to a base64-encoded string.
+    """
+    img_url = settings.FILE_URL
+    full_path = os.path.join(img_url, file_path)
+    if os.path.exists(full_path):
+        with open(full_path, "rb") as file:
+            file_data = file.read()
+            return base64.b64encode(file_data).decode('utf-8')
+    return None
+#### to save video in base64
+def video_path_to_binary(filename):
+    video_url = settings.FILE_URL
+    def get_base64_encoded_video(video_path):
+        if os.path.exists(video_path):
+            with open(video_path, "rb") as video_file:
+                video_data = video_file.read()
+                base64_encoded_video = base64.b64encode(video_data)
+                return base64_encoded_video
+        else:
+            return None
+    if isinstance(filename, list):
+        encoded_videos = []
+        for path in filename:
+            video_path = os.path.join(video_url, path)
+            base64_encoded_video = get_base64_encoded_video(video_path)
+            if base64_encoded_video is not None:
+                encoded_videos.append(base64_encoded_video)
+        return encoded_videos
+    else:
+        video_path = os.path.join(video_url, filename)
+        return get_base64_encoded_video(video_path)
+    return None
 
 
-# def save_image_to_folder(image_location, _id, name,entity_type):
-#     # Decode the base64 image data
-#     image_data = base64.b64decode(image_location)
-#     # Define the folder name using the _id
-#     folder_name = str(_id)
-#     # Get the base URL for the file storage
-#     img_url = settings.FILE_URL
-#     # Create the folder path
-#     folder_path = os.path.join(img_url, entity_type, folder_name)
-#     # Create the folder if it doesn't exist
-#     if not os.path.exists(folder_path):
-#         os.makedirs(folder_path)
-#     # Define the image name
-#     image_name = name + ".jpg"
-#     # Define the full image path
-#     image_path = os.path.join(folder_path, image_name)
-#     # Save the image to the defined path
-#     with open(image_path, "wb") as image_file:
-#         image_file.write(image_data)
-#     # Return the relative path to be stored in the database
-#     relative_path = os.path.join(entity_type, folder_name, image_name)
-#     return relative_path
+
+
+
+
+def save_video_to_folder(video_data, _id, name, entity_type):
+    decoded_video = base64.b64decode(video_data)
+    folder_name = str(_id)
+    video_url = settings.FILE_URL
+    folder_path = os.path.join(video_url, entity_type, folder_name)
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    video_name = f"{name}_{uuid.uuid4().hex[:8]}.mp4"
+    video_path = os.path.join(folder_path, video_name)
+    with open(video_path, "wb") as video_file:
+        video_file.write(decoded_video)
+    relative_video_path = os.path.join(entity_type, folder_name, video_name)
+    return relative_video_path
+
 
 
 
@@ -111,6 +123,9 @@ def image_path_to_binary(filename):
 
 
 
+
+
+
 def save_image_to_folder(image_data, _id, name, entity_type):
     decoded_image = base64.b64decode(image_data)
     folder_name = str(_id)
@@ -127,41 +142,6 @@ def save_image_to_folder(image_data, _id, name, entity_type):
 
 
 
-
-
-
-
-
-
-
-
-def save_video_to_folder(video_data, _id, name, entity_type):
-
-    video_binary = base64.b64decode(video_data)
-    folder_name = str(_id)
-    folder_path = os.path.join(settings.FILE_URL, entity_type, folder_name)
-    
-    # Ensure the directory exists
-    os.makedirs(folder_path, exist_ok=True)
-    
-    video_name = f"{name}_{uuid.uuid4().hex[:8]}.mp4"
-    video_path = os.path.join(folder_path, video_name)
-    
-    with open(video_path, 'wb') as video_file:
-        video_file.write(video_binary)
-    
-    relative_video_path = os.path.join(entity_type, folder_name, video_name)
-    return relative_video_path
-
-def video_path_to_binary(video_path):
-
-    if not os.path.exists(video_path):
-        return None
-    
-    with open(video_path, 'rb') as video_file:
-        video_binary = base64.b64encode(video_file.read())
-    
-    return video_binary
 
 
 
