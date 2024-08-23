@@ -86,7 +86,7 @@ class OrganizationSerializer4(serializers.ModelSerializer):
 
     class Meta:
         model = Organization
-        fields = ['_id', 'organization_name', 'org_logo', 'chairman', 'web_url', 'reg_id','est_by','mission','org_detail','desc']
+        fields = ['_id', 'organization_name', 'org_logo', 'chairman', 'web_url', 'reg_id','est_by','mission','org_detail','desc','object_id','sub_category_id','category_id']
 
     def get_org_logo(self, obj):
         if obj.org_logo:

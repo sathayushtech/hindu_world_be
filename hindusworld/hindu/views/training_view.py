@@ -402,37 +402,67 @@ class GetTrainingsByLocation(generics.ListAPIView):
         input_value = self.request.query_params.get('input_value')
         category = self.request.query_params.get('category')
 
-        if not input_value:
-            raise ValidationError("Input value is required")
+        if not input_value and not category:
+            raise ValidationError("Input value or category is required")
 
-        # Define queries for each level
-        continent_query = Q(object_id__state__country__continent__pk=input_value)
-        country_query = Q(object_id__state__country__pk=input_value)
-        state_query = Q(object_id__state__pk=input_value)
-        district_query = Q(object_id__pk=input_value)
+        if input_value and not category:
+            # Define queries for each level
+            continent_query = Q(object_id__state__country__continent__pk=input_value)
+            country_query = Q(object_id__state__country__pk=input_value)
+            state_query = Q(object_id__state__pk=input_value)
+            district_query = Q(object_id__pk=input_value)
 
-        # Combine queries with OR operator
-        combined_query = continent_query | country_query | state_query | district_query
+            # Combine queries with OR operator
+            combined_query = continent_query | country_query | state_query | district_query
 
-        # Apply category filter if provided
-        if category:
+            # Filter trainings based on combined query
+            queryset = Training.objects.filter(combined_query).select_related(
+                'object_id__state__country__continent',
+                'object_id__state__country',
+                'object_id__state',
+                'object_id'
+            )
+
+            # Check if queryset is empty and filter directly by object_id
+            if not queryset.exists():
+                queryset = Training.objects.filter(object_id=input_value)
+
+            return queryset
+
+        elif category and not input_value:
+            # Filter trainings only by category
+            queryset = Training.objects.filter(category=category)
+            return queryset
+
+        else:
+            # Both input_value and category are provided
+            # Define queries for each level
+            continent_query = Q(object_id__state__country__continent__pk=input_value)
+            country_query = Q(object_id__state__country__pk=input_value)
+            state_query = Q(object_id__state__pk=input_value)
+            district_query = Q(object_id__pk=input_value)
+
+            # Combine queries with OR operator
+            combined_query = continent_query | country_query | state_query | district_query
+
+            # Apply category filter if provided
             combined_query &= Q(category=category)
 
-        # Filter trainings based on combined query
-        queryset = Training.objects.filter(combined_query).select_related(
-            'object_id__state__country__continent',
-            'object_id__state__country',
-            'object_id__state',
-            'object_id'
-        )
+            # Filter trainings based on combined query
+            queryset = Training.objects.filter(combined_query).select_related(
+                'object_id__state__country__continent',
+                'object_id__state__country',
+                'object_id__state',
+                'object_id'
+            )
 
-        # Check if queryset is empty and filter directly by object_id
-        if not queryset.exists():
-            queryset = Training.objects.filter(object_id=input_value)
-            if category:
-                queryset = queryset.filter(category=category)
+            # Check if queryset is empty and filter directly by object_id
+            if not queryset.exists():
+                queryset = Training.objects.filter(object_id=input_value)
+                if category:
+                    queryset = queryset.filter(category=category)
 
-        return queryset
+            return queryset
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -443,9 +473,3 @@ class GetTrainingsByLocation(generics.ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
-
-
-
-
-

@@ -184,8 +184,6 @@ class PastEventsView(generics.ListAPIView):
 
 
 
-
-
 class GetEventsByLocation(generics.ListAPIView):
     serializer_class = EventsSerializer1
 
@@ -193,35 +191,38 @@ class GetEventsByLocation(generics.ListAPIView):
         input_value = self.request.query_params.get('input_value')
         category = self.request.query_params.get('category')
 
-        if not input_value:
-            raise ValidationError("Input value is required")
+        # Ensure either input_value or category is provided
+        if not input_value and not category:
+            raise ValidationError("Input value or category is required")
 
-        # Define queries for each level
-        continent_query = Q(object_id__state__country__continent__pk=input_value)
-        country_query = Q(object_id__state__country__pk=input_value)
-        state_query = Q(object_id__state__pk=input_value)
-        district_query = Q(object_id__pk=input_value)
+        queryset = Events.objects.all()
 
-        # Combine queries with OR operator
-        combined_query = continent_query | country_query | state_query | district_query
+        # Apply filters based on the input values
+        if input_value:
+            # Define queries for each level
+            continent_query = Q(object_id__state__country__continent__pk=input_value)
+            country_query = Q(object_id__state__country__pk=input_value)
+            state_query = Q(object_id__state__pk=input_value)
+            district_query = Q(object_id__pk=input_value)
 
-        # Apply category filter if provided
+            # Combine queries with OR operator
+            combined_query = continent_query | country_query | state_query | district_query
+            queryset = queryset.filter(combined_query)
+
+            # If the queryset is empty, check directly by object_id
+            if not queryset.exists():
+                queryset = Events.objects.filter(object_id=input_value)
+
         if category:
-            combined_query &= Q(category=category)
+            queryset = queryset.filter(category=category)
 
-        # Filter events based on combined query
-        queryset = Events.objects.filter(combined_query).select_related(
+        # Prefetch related fields for better performance
+        queryset = queryset.select_related(
             'object_id__state__country__continent',
             'object_id__state__country',
             'object_id__state',
             'object_id'
         )
-
-        # Check if queryset is empty and filter directly by object_id
-        if not queryset.exists():
-            queryset = Events.objects.filter(object_id=input_value)
-            if category:
-                queryset = queryset.filter(category=category)
 
         return queryset
 
@@ -234,6 +235,7 @@ class GetEventsByLocation(generics.ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
 
 
 from django.db.models import Case, When, Value, IntegerField

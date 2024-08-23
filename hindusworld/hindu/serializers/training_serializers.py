@@ -68,7 +68,7 @@ class TrainingSerializer5(serializers.ModelSerializer):
 
     class Meta:
         model = Training
-        fields = ['_id', 'name', 'desc', 'image', 'location', 'duration','duration','time','trainer_name','contact_details','video','training_type','category']  # Include other relevant fields
+        fields = ['_id', 'name', 'desc', 'image', 'location', 'duration','duration','time','trainer_name','contact_details','video','training_type','category','object_id']  # Include other relevant fields
 
     def get_image(self, obj):
         if obj.image:

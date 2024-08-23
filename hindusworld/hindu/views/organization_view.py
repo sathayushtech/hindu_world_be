@@ -383,54 +383,53 @@ class OrgnizationView(viewsets.ModelViewSet):
 
 
 
-
-
-
 class GetOrganizationsByLocation(generics.ListAPIView):
     serializer_class = OrganizationSerializer4
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        # Retrieve query parameters
         input_value = self.request.query_params.get('input_value')
-        category = self.request.query_params.get('category')
-        sub_category = self.request.query_params.get('sub_category')
+        category_id = self.request.query_params.get('category_id')
+        sub_category_id = self.request.query_params.get('sub_category_id')
 
-        if not input_value:
-            raise ValidationError("Input value is required")
+        if not input_value and not category_id and not sub_category_id:
+            raise ValidationError("At least one of 'input_value', 'category_id', or 'sub_category_id' is required.")
 
-        # Define queries for each location level
-        continent_query = Q(object_id__state__country__continent__pk=input_value)
-        country_query = Q(object_id__state__country__pk=input_value)
-        state_query = Q(object_id__state__pk=input_value)
-        district_query = Q(object_id__pk=input_value)
+        # Start with all organizations
+        queryset = Organization.objects.all()
 
-        # Combine location queries with OR
-        combined_query = continent_query | country_query | state_query | district_query
+        if input_value:
+            # Define queries for each level
+            continent_query = Q(object_id__state__country__continent__pk=input_value)
+            country_query = Q(object_id__state__country__pk=input_value)
+            state_query = Q(object_id__state__pk=input_value)
+            district_query = Q(object_id__pk=input_value)
 
-        # Apply category filter if provided
-        if category:
-            combined_query &= Q(category_id__name=category)
+            # Combine queries with OR operator
+            combined_query = continent_query | country_query | state_query | district_query
 
-        # Apply sub_category filter if provided
-        if sub_category:
-            combined_query &= Q(sub_category_id__name=sub_category)
+            # Filter organizations based on combined query
+            queryset = queryset.filter(combined_query)
 
-        # Filter organizations based on the combined query
-        queryset = Organization.objects.filter(combined_query).select_related(
+            # Check if queryset is empty and filter directly by object_id
+            if not queryset.exists():
+                queryset = Organization.objects.filter(object_id=input_value)
+
+        if category_id:
+            # Filter organizations by category_id
+            queryset = queryset.filter(category_id=category_id)
+
+        if sub_category_id:
+            # Filter organizations by sub_category_id
+            queryset = queryset.filter(sub_category_id=sub_category_id)
+
+        # Optimize querying related fields
+        queryset = queryset.select_related(
             'object_id__state__country__continent',
             'object_id__state__country',
             'object_id__state',
             'object_id'
         )
-
-        # If the queryset is empty, try filtering directly by object_id
-        if not queryset.exists():
-            queryset = Organization.objects.filter(object_id=input_value)
-            if category:
-                queryset = queryset.filter(category_id__name=category)
-            if sub_category:
-                queryset = queryset.filter(sub_category_id__name=sub_category)
 
         return queryset
 

@@ -47,7 +47,7 @@ class EventsSerializer1(serializers.ModelSerializer):
 
     class Meta:
         model = Events
-        fields = ['_id','event_images','name','start_date','end_date','end_time','end_time','location','organizer_name','live_stream_link','category','organization','contact_details']
+        fields = '__all__'
 
 
 
