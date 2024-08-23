@@ -1,8 +1,10 @@
 import uuid
 from django.db import models
 from ..models import Organization
-from ..enums import status,TrainingType
+from ..enums import status,TrainingType,GeoSite
 from .training_category import TrainingCategory
+from .district import District
+
 
 
 
@@ -23,6 +25,10 @@ class Training(models.Model):
     video=models.TextField(db_column='video')
     training_type = models.CharField(db_column='training_type',max_length=10,choices=[(e.value, e.value) for e in TrainingType],default=TrainingType.OFFLINE.value) 
     category = models.ForeignKey(TrainingCategory, db_column='category', on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.ForeignKey(District, db_column='object_id', on_delete=models.SET_NULL, null=True, blank=True, related_name='Training')
+    geo_site = models.CharField(max_length=50, choices=[(e.name, e.value) for e in GeoSite], default=GeoSite.DISTRICT.value)
+
+
  
 
 

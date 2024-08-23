@@ -29,28 +29,20 @@ class OrganizationMain(APIView):
         })
 
 
-
 class EventsMain(APIView):
     def get(self, request):
         events = Events.objects.all()[:4]  # Retrieve the first 4 events globally
-        events_serializer = EventsSerializer(events, many=True)
-        
-        # Convert event images to base64
-        for event in events_serializer.data:
-            if 'event_images' in event and event['event_images']:
-                event['event_images'] = [
-                    image_path_to_binary(img) for img in event['event_images']
-                ]
-            
+        events_serializer = EventsSerializer3(events, many=True)
+
         return Response({
             'events': events_serializer.data,
         })
-
+    
 
 class TrainingMain(APIView):
     def get(self, request):
         trainings = Training.objects.all()[:4]  # Retrieve the first 4 trainings globally
-        training_serializer = TrainingSerializer(trainings, many=True)
+        training_serializer = TrainingSerializer4(trainings, many=True)
         
         # Convert images and videos to base64
         for training in training_serializer.data:
