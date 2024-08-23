@@ -1,6 +1,6 @@
 from rest_framework import viewsets, generics, status
 from ..models import Training,Register
-from ..serializers import TrainingSerializer,TrainingSerializer2,TrainerSerializer3
+from ..serializers import *
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.core.mail import send_mail
@@ -10,7 +10,8 @@ from django.shortcuts import get_object_or_404
 from ..utils import save_image_to_folder,image_path_to_binary,video_path_to_binary,save_video_to_folder
 import uuid
 import os
-
+from rest_framework.exceptions import ValidationError
+from django.db.models import Q
 
 
 
@@ -386,3 +387,89 @@ class UpdateTrainer(generics.UpdateAPIView):
         response_data['certificate'] = instance.certificate if instance.certificate else None
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+class GetTrainingsByLocation(generics.ListAPIView):
+    serializer_class = TrainingSerializer5
+
+    def get_queryset(self):
+        input_value = self.request.query_params.get('input_value')
+        category = self.request.query_params.get('category')
+
+        if not input_value and not category:
+            raise ValidationError("Input value or category is required")
+
+        if input_value and not category:
+            # Define queries for each level
+            continent_query = Q(object_id__state__country__continent__pk=input_value)
+            country_query = Q(object_id__state__country__pk=input_value)
+            state_query = Q(object_id__state__pk=input_value)
+            district_query = Q(object_id__pk=input_value)
+
+            # Combine queries with OR operator
+            combined_query = continent_query | country_query | state_query | district_query
+
+            # Filter trainings based on combined query
+            queryset = Training.objects.filter(combined_query).select_related(
+                'object_id__state__country__continent',
+                'object_id__state__country',
+                'object_id__state',
+                'object_id'
+            )
+
+            # Check if queryset is empty and filter directly by object_id
+            if not queryset.exists():
+                queryset = Training.objects.filter(object_id=input_value)
+
+            return queryset
+
+        elif category and not input_value:
+            # Filter trainings only by category
+            queryset = Training.objects.filter(category=category)
+            return queryset
+
+        else:
+            # Both input_value and category are provided
+            # Define queries for each level
+            continent_query = Q(object_id__state__country__continent__pk=input_value)
+            country_query = Q(object_id__state__country__pk=input_value)
+            state_query = Q(object_id__state__pk=input_value)
+            district_query = Q(object_id__pk=input_value)
+
+            # Combine queries with OR operator
+            combined_query = continent_query | country_query | state_query | district_query
+
+            # Apply category filter if provided
+            combined_query &= Q(category=category)
+
+            # Filter trainings based on combined query
+            queryset = Training.objects.filter(combined_query).select_related(
+                'object_id__state__country__continent',
+                'object_id__state__country',
+                'object_id__state',
+                'object_id'
+            )
+
+            # Check if queryset is empty and filter directly by object_id
+            if not queryset.exists():
+                queryset = Training.objects.filter(object_id=input_value)
+                if category:
+                    queryset = queryset.filter(category=category)
+
+            return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

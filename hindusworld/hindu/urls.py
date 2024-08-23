@@ -27,7 +27,7 @@ urlpatterns=[
 
     path('',include(router.urls)),
     path('organization_get/<str:field_name>/<str:input_value>', GetItemByfield_InputView.as_view()),
-    path('organizations_get/<str:field_name1>/<str:input_value1>/<str:field_name2>/<str:input_value2>', GetItemByfields_InputViews.as_view()),
+    # path('organizations_get/<str:field_name1>/<str:input_value1>/<str:field_name2>/<str:input_value2>', GetItemByfields_InputViews.as_view()),
     path('addOrgnization',AddOrgnization.as_view()),
     path('updateStatusOrgnization/<str:org_id>',UpdateOrgStatus.as_view()),
     path('get_org_by_pending',GetOrgByStatus_Pending.as_view()),
@@ -52,6 +52,12 @@ urlpatterns=[
     path('updateTrainer/<uuid:id>/',UpdateTrainer.as_view()),
     path('eventsupcoming', UpcomingEventsView.as_view(), name='upcoming-events'),
     path('eventspast', PastEventsView.as_view(), name='past-events'),
+    path('locationByEvents/', GetEventsByLocation.as_view()),
+    path('locationByOrganization/',GetOrganizationsByLocation.as_view()),
+    path('locationByTraining/',GetTrainingsByLocation.as_view()),
+    path('eventsstatus', EventListView.as_view(), name='event-list'),
+
+
 
 
 

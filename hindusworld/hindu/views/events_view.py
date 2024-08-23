@@ -12,6 +12,10 @@ from django.conf import settings
 from datetime import datetime
 from ..utils import save_image_to_folder
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
+from ..enums import EventStatusEnum
+from rest_framework.exceptions import ValidationError
+
 
 
 
@@ -176,3 +180,109 @@ class PastEventsView(generics.ListAPIView):
             if end_date < today:
                 past_events.append(event)
         return past_events
+    
+
+
+
+class GetEventsByLocation(generics.ListAPIView):
+    serializer_class = EventsSerializer1
+
+    def get_queryset(self):
+        input_value = self.request.query_params.get('input_value')
+        category = self.request.query_params.get('category')
+
+        # Ensure either input_value or category is provided
+        if not input_value and not category:
+            raise ValidationError("Input value or category is required")
+
+        queryset = Events.objects.all()
+
+        # Apply filters based on the input values
+        if input_value:
+            # Define queries for each level
+            continent_query = Q(object_id__state__country__continent__pk=input_value)
+            country_query = Q(object_id__state__country__pk=input_value)
+            state_query = Q(object_id__state__pk=input_value)
+            district_query = Q(object_id__pk=input_value)
+
+            # Combine queries with OR operator
+            combined_query = continent_query | country_query | state_query | district_query
+            queryset = queryset.filter(combined_query)
+
+            # If the queryset is empty, check directly by object_id
+            if not queryset.exists():
+                queryset = Events.objects.filter(object_id=input_value)
+
+        if category:
+            queryset = queryset.filter(category=category)
+
+        # Prefetch related fields for better performance
+        queryset = queryset.select_related(
+            'object_id__state__country__continent',
+            'object_id__state__country',
+            'object_id__state',
+            'object_id'
+        )
+
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+
+from django.db.models import Case, When, Value, IntegerField
+
+
+class EventListView(generics.ListAPIView):
+    serializer_class = EventsSerializer
+
+    def get_queryset(self):
+        status_param = self.request.query_params.get('status')
+
+        # Get the current date
+        today = timezone.now().date()
+
+        if status_param:
+            # Validate the status_param
+            if status_param not in dict(EventStatusEnum.__members__).keys():
+                raise ValidationError("Invalid status value")
+
+            # Filter by status and order by proximity to today
+            return Events.objects.filter(event_status=status_param).order_by(
+                Case(
+                    When(start_date__gte=today, then=Value(0)),  # Upcoming or today
+                    When(start_date__lt=today, then=Value(1)),   # Past events
+                    default=Value(2),
+                    output_field=IntegerField()
+                ),
+                'start_date'  # Order by start date within each status group
+            )
+        else:
+            # Order all events by proximity to today and then by start date
+            return Events.objects.all().order_by(
+                Case(
+                    When(start_date__gte=today, then=Value(0)),  # Upcoming or today
+                    When(start_date__lt=today, then=Value(1)),   # Past events
+                    default=Value(2),
+                    output_field=IntegerField()
+                ),
+                'start_date'  # Order by start date within each proximity group
+            )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
