@@ -12,6 +12,13 @@ import uuid
 import os
 from rest_framework.exceptions import ValidationError
 from django.db.models import Q
+from rest_framework import viewsets, pagination
+
+class CustomPagination(pagination.PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 1000 
+
 
 
 
@@ -257,6 +264,7 @@ class UpdateTrainerView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = TrainerSerializer3
 
+
     def get(self, request, id):
         # Retrieve the trainer instance by ID
         instance = get_object_or_404(Register, id=id)
@@ -397,6 +405,8 @@ class UpdateTrainer(generics.UpdateAPIView):
 
 class GetTrainingsByLocation(generics.ListAPIView):
     serializer_class = TrainingSerializer5
+    pagination_class = CustomPagination
+
 
     def get_queryset(self):
         input_value = self.request.query_params.get('input_value')

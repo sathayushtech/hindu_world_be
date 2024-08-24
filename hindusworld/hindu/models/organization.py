@@ -71,8 +71,9 @@ class Organization(models.Model):
     geo_site = models.CharField(max_length=50, choices=[(e.name, e.value) for e in GeoSite], default=GeoSite.DISTRICT.value)
     object_id = models.ForeignKey(District, db_column='object_id', on_delete=models.SET_NULL, null=True, blank=True, related_name='organization')
     organization_members = models.CharField(max_length=10000, null=True)
-    category_id = models.ForeignKey(Category, on_delete=models.SET_NULL, db_column='category_id', null=True, blank=True)
     sub_category_id = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, db_column='sub_category_id', null=True, blank=True)
+
+    category_id = models.ForeignKey(Category, on_delete=models.SET_NULL, db_column='category_id', null=True, blank=True)
     govt_id_proof = models.TextField(null=True, blank=True)
 
     class Meta:

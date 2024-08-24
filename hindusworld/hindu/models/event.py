@@ -6,6 +6,7 @@ from ..enums import status,GeoSite,EventStatusEnum
 from django.utils.timesince import timesince
 from django.utils import timezone
 from .district import District
+from datetime import datetime
 
 
 class Events(models.Model):
@@ -32,11 +33,44 @@ class Events(models.Model):
 
 
 
-
-
     @property
     def relative_time(self):
-        return timesince(self.created_at, timezone.now())
+        if not self.start_date or not self.start_time:
+            return "Unknown"
+
+        try:
+            # Convert strings to datetime
+            start_date = datetime.strptime(self.start_date, '%d-%m-%Y').date()
+            # Remove microseconds from the time string
+            start_time_str = self.start_time.split('.')[0]
+            start_time = datetime.strptime(start_time_str, '%H:%M:%S').time()
+            start_datetime = timezone.make_aware(datetime.combine(start_date, start_time))
+        except ValueError as e:
+            return f"Invalid date or time format: {e}"
+
+        now = timezone.now()
+
+        # Compute relative time
+        if start_datetime > now:
+            diff = start_datetime - now
+            if diff.days == 0:
+                hours, remainder = divmod(diff.seconds, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return f"{hours} hours, {minutes} minutes to go"
+            elif diff.days == 1:
+                return "1 day to go"
+            else:
+                return f"{diff.days} days to go"
+        else:
+            diff = now - start_datetime
+            if diff.days == 0:
+                hours, remainder = divmod(diff.seconds, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return f"{hours} hours, {minutes} minutes ago"
+            elif diff.days == 1:
+                return "1 day ago"
+            else:
+                return f"{diff.days} days ago"
 
     class Meta:
         db_table = 'event'

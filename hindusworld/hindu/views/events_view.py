@@ -1,6 +1,6 @@
 from rest_framework import viewsets,generics
 from ..models import Events
-from ..serializers import EventsSerializer,EventsSerializer1,EventSerializer2
+from ..serializers import *
 from ..models import Organization, Country,Continent,Register,District,Events
 from rest_framework import status
 from rest_framework import status as http_status
@@ -15,6 +15,12 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from ..enums import EventStatusEnum
 from rest_framework.exceptions import ValidationError
+from rest_framework import viewsets, pagination
+
+class CustomPagination(pagination.PageNumberPagination):
+    page_size = 1
+    page_size_query_param = 'page_size'
+    max_page_size = 10
 
 
 
@@ -186,6 +192,8 @@ class PastEventsView(generics.ListAPIView):
 
 class GetEventsByLocation(generics.ListAPIView):
     serializer_class = EventsSerializer1
+    pagination_class = CustomPagination
+
 
     def get_queryset(self):
         input_value = self.request.query_params.get('input_value')
@@ -238,44 +246,52 @@ class GetEventsByLocation(generics.ListAPIView):
 
 
 
+
+
+
+
+
+
+
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+from django.utils import timezone
 from django.db.models import Case, When, Value, IntegerField
 
 
 class EventListView(generics.ListAPIView):
-    serializer_class = EventsSerializer
+    serializer_class = EventsSerializer4
+    pagination_class = CustomPagination
+
 
     def get_queryset(self):
         status_param = self.request.query_params.get('status')
+        now = timezone.now()
 
-        # Get the current date
-        today = timezone.now().date()
+        queryset = Events.objects.all()
 
         if status_param:
-            # Validate the status_param
             if status_param not in dict(EventStatusEnum.__members__).keys():
                 raise ValidationError("Invalid status value")
+            queryset = queryset.filter(event_status=status_param)
 
-            # Filter by status and order by proximity to today
-            return Events.objects.filter(event_status=status_param).order_by(
-                Case(
-                    When(start_date__gte=today, then=Value(0)),  # Upcoming or today
-                    When(start_date__lt=today, then=Value(1)),   # Past events
-                    default=Value(2),
-                    output_field=IntegerField()
-                ),
-                'start_date'  # Order by start date within each status group
-            )
-        else:
-            # Order all events by proximity to today and then by start date
-            return Events.objects.all().order_by(
-                Case(
-                    When(start_date__gte=today, then=Value(0)),  # Upcoming or today
-                    When(start_date__lt=today, then=Value(1)),   # Past events
-                    default=Value(2),
-                    output_field=IntegerField()
-                ),
-                'start_date'  # Order by start date within each proximity group
-            )
+        # Order events: upcoming events first, then completed events
+        return queryset.order_by(
+            Case(
+                When(event_status=EventStatusEnum.UPCOMING.name, then=Value(0)),
+                When(event_status=EventStatusEnum.COMPLETED.name, then=Value(1)),
+                default=Value(2),
+                output_field=IntegerField()
+            ),
+            Case(
+                When(start_date__gte=now.date(), then=Value(0)),
+                When(start_date__lt=now.date(), then=Value(1)),
+                default=Value(2),
+                output_field=IntegerField()
+            ),
+            'start_date'  # Further order by start date within each status group
+        )
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
