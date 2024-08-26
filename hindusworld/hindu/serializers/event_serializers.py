@@ -98,7 +98,7 @@ class EventsSerializer4(serializers.ModelSerializer):
 
     class Meta:
         model = Events
-        fields = ['_id', 'name', 'start_date', 'start_time', 'relative_time', 'event_status','event_images','organization','object_id','category']
+        fields = ['_id', 'name', 'start_date', 'start_time','end_date', 'relative_time', 'event_status','event_images','organization','object_id','category']
 
     def get_relative_time(self, obj):
         return obj.relative_time

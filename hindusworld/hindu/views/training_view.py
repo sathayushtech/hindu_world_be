@@ -29,9 +29,8 @@ class TrainingView(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            # Fetch the Register instance for the logged-in user using the username
             username = request.user.username
-            register_instance = Register.objects.using('login_db').get(username=username)
+            register_instance = Register.objects.get(username=username)
             user_type = register_instance.user_type
 
             # Check if the user type is ADMIN

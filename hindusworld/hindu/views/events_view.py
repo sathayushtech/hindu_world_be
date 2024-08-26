@@ -18,9 +18,9 @@ from rest_framework.exceptions import ValidationError
 from rest_framework import viewsets, pagination
 
 class CustomPagination(pagination.PageNumberPagination):
-    page_size = 1
+    page_size = 10
     page_size_query_param = 'page_size'
-    max_page_size = 10
+    max_page_size = 50
 
 
 
@@ -253,23 +253,23 @@ class GetEventsByLocation(generics.ListAPIView):
 
 
 
-from rest_framework import generics
-from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django.utils import timezone
 from django.db.models import Case, When, Value, IntegerField
 
-
 class EventListView(generics.ListAPIView):
     serializer_class = EventsSerializer4
     pagination_class = CustomPagination
-
 
     def get_queryset(self):
         status_param = self.request.query_params.get('status')
         now = timezone.now()
 
         queryset = Events.objects.all()
+
+        # Update event statuses before returning the queryset
+        for event in queryset:
+            event.update_event_status()
 
         if status_param:
             if status_param not in dict(EventStatusEnum.__members__).keys():
@@ -281,12 +281,6 @@ class EventListView(generics.ListAPIView):
             Case(
                 When(event_status=EventStatusEnum.UPCOMING.name, then=Value(0)),
                 When(event_status=EventStatusEnum.COMPLETED.name, then=Value(1)),
-                default=Value(2),
-                output_field=IntegerField()
-            ),
-            Case(
-                When(start_date__gte=now.date(), then=Value(0)),
-                When(start_date__lt=now.date(), then=Value(1)),
                 default=Value(2),
                 output_field=IntegerField()
             ),

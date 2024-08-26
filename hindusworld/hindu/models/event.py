@@ -71,6 +71,21 @@ class Events(models.Model):
                 return "1 day ago"
             else:
                 return f"{diff.days} days ago"
+    def update_event_status(self):
+        now = timezone.now()
+        if self.end_date and self.end_time:
+            end_datetime_str = f"{self.end_date} {self.end_time.split('.')[0]}"
+            try:
+                end_datetime = datetime.strptime(end_datetime_str, '%d-%m-%Y %H:%M:%S')
+                end_datetime = timezone.make_aware(end_datetime)
+                
+                if end_datetime < now:
+                    self.event_status = EventStatusEnum.COMPLETED.name
+                else:
+                    self.event_status = EventStatusEnum.UPCOMING.name
+                self.save()
+            except ValueError as e:
+                print(f"Error updating event status: {e}")
 
     class Meta:
         db_table = 'event'
