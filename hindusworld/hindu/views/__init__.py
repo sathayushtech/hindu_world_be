@@ -13,3 +13,6 @@ from .training_view import TrainingView,UpdateTrainingStatus,UpdateTrainerView,G
 from .event_category_view import EventCategoryView
 from .training_category_view import TrainingCategoryView
 from .main_view import EventsMain,TrainingMain,OrganizationMain
+from .article_category_view import ArticleCategoryView
+from .article_sub_category_view import ArticleSubCategoryView
+from .article_view import ArticleView

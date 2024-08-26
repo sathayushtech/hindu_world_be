@@ -10,5 +10,8 @@ from .event import Events
 from .training import Training
 from .event_category import EventCategory
 from .training_category import TrainingCategory
+from .article_category import ArticleCategory
+from .article_sub_category import ArticleSubCategory
+from .article import Article
 # from .block import Block
 # from .village import Village

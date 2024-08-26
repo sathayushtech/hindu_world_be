@@ -12,3 +12,6 @@ from .event_serializers import EventsSerializer,EventsSerializer1,EventSerialize
 from .training_serializers import TrainingSerializer,TrainingSerializer2,TrainerSerializer3,TrainingSerializer4,TrainingSerializer5
 from .event_category_serializers import EventCategorySerializer
 from .training_category_serializers import TrainingCategorySerializer
+from .article_category_serializer import ArticleCategorySerializer
+from .article_sub_category_serializer import ArticleSubCategorySerializer
+from .article_serializer import ArticleSerializer
