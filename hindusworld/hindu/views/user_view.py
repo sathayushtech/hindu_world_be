@@ -34,7 +34,7 @@ class Register_LoginView(generics.GenericAPIView):
             user.verification_otp = otp
             user.verification_otp_created_time = timezone.now()
             user.save(using='login_db')
-            message = "Login successful and OTP sent successfully"
+            message = " OTP sent successfully"
         except Register.DoesNotExist:
             # Username does not exist, create new user and set OTP
             user = Register.objects.using('login_db').create(username=username, verification_otp=otp, verification_otp_created_time=timezone.now())
