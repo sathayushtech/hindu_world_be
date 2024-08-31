@@ -41,7 +41,7 @@ urlpatterns=[
     path('districts_by_state/<str:state>/', districts_By_State.as_view(), name='districts_by_state'),
     path('profile_get_by_id/<str:id>/',GetProfileById.as_view()),
     path('profile_get/',GetProfile.as_view()),
-    path('events', AddEventView.as_view(), name='add-event'),
+    # path('events/', AddEventView.as_view(), name='add-event'),
     path('eventsupdatestatus/<uuid:event_id>/', UpdateEventStatus.as_view(), name='update-event-status'),
     path('trainingupdatestatus/<uuid:training_id>/update-status/', UpdateTrainingStatus.as_view(), name='update-training-status'),
     path('eventsmain', EventsMain.as_view(), name='events-main'),
@@ -50,12 +50,12 @@ urlpatterns=[
     # path('updatetrainer/<uuid:id>/', UpdateTrainerView.as_view(), name='update_trainer'),
     path('getTrainer/<uuid:id>/',GetTrainerView.as_view()),
     path('updateTrainer/<uuid:id>/',UpdateTrainer.as_view()),
-    path('eventsupcoming', UpcomingEventsView.as_view(), name='upcoming-events'),
-    path('eventspast', PastEventsView.as_view(), name='past-events'),
+    # path('eventsupcoming', UpcomingEventsView.as_view(), name='upcoming-events'),
+    # path('eventspast', PastEventsView.as_view(), name='past-events'),
     path('locationByEvents/', GetEventsByLocation.as_view()),
     path('locationByOrganization/',GetOrganizationsByLocation.as_view()),
     path('locationByTraining/',GetTrainingsByLocation.as_view()),
-    path('eventsstatus', EventListView.as_view(), name='event-list'),
+    path('eventsstatus', EventstatusView.as_view(), name='event-list'),
 
 
 

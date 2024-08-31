@@ -1,6 +1,6 @@
 from rest_framework import viewsets,generics
 from ..models import Events
-from ..serializers import EventsSerializer,EventsSerializer1,EventSerializer2
+from ..serializers import *
 from ..models import Organization, Country,Continent,Register,District,Events
 from rest_framework import status
 from rest_framework import status as http_status
@@ -15,6 +15,29 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from ..enums import EventStatusEnum
 from rest_framework.exceptions import ValidationError
+from rest_framework import viewsets, pagination
+from rest_framework.exceptions import ValidationError
+from django.utils import timezone
+from django.db.models import Case, When, Value, IntegerField, ExpressionWrapper
+
+
+
+
+
+class CustomPagination(pagination.PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+
+# class EventsViewSet(viewsets.ModelViewSet):
+#     queryset = Events.objects.all()
+#     serializer_class = EventsSerializer1
+
+
+
+        
 
 
 
@@ -24,54 +47,84 @@ from rest_framework.exceptions import ValidationError
 class EventsViewSet(viewsets.ModelViewSet):
     queryset = Events.objects.all()
     serializer_class = EventsSerializer1
+    # permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
 
 
-class AddEventView(generics.GenericAPIView):
-    serializer_class = EventsSerializer
-    permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
+    def list(self, request):
+        filter_kwargs = {}
+        for key, value in request.query_params.items():
+            filter_kwargs[key] = value
+
+        queryset = Events.objects.filter(**filter_kwargs)
+        if not queryset.exists():
+            return Response({
+                'message': 'Data not found',
+                'status': 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        # Filter upcoming and completed events, sorted by start date
+        upcoming_events = queryset.filter(event_status="UPCOMING").order_by('start_date')
+        completed_events = queryset.filter(event_status="COMPLETED").order_by('start_date')
+
+        event_upcoming_serializer = EventsSerializer1(upcoming_events, many=True)
+        event_completed_serializer = EventsSerializer1(completed_events, many=True)
+
+        if not filter_kwargs:
+            return Response({
+                "status": 200,
+                "event_upcoming": event_upcoming_serializer.data,
+                "event_completed": event_completed_serializer.data,
+            })
+
+        # Return the filtered and sorted queryset
+        serializer = EventsSerializer1(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        try:
+            instance = self.get_object()
+        except Events.DoesNotExist:
+            return Response({'message': 'Object not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
         try:
             username = request.user.username
-            print(f"Username: {username}")
-
             register_instance = Register.objects.get(username=username)
             is_member = register_instance.is_member
 
-            # Check if the user is a member
-            if is_member == "FALSE":
+            if is_member == "NO":
                 return Response({
                     "message": "Cannot create event. Membership details are required. Update your profile and become a member."
                 }, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Capture the current time
+
             created_at = timezone.now()
 
-            # Proceed with event creation
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-            # Handle event brochure if provided
             brochure = request.data.get('brochure')
             if brochure and brochure != "null":
                 saved_brochure_location = save_image_to_folder(brochure, serializer.instance._id, serializer.instance.name, 'eventbrochures')
                 if saved_brochure_location:
                     serializer.instance.brochure = saved_brochure_location
 
-            # Handle event images if provided
             event_images = request.data.get('event_images', [])
             if event_images:
                 saved_event_image_paths = []
                 for image_data in event_images:
                     if image_data and image_data != "null":
-                        saved_location = save_image_to_folder(image_data, serializer.instance._id, serializer.instance.name, 'eventimages')
+                        saved_location = save_image_to_folder(image_data, serializer.instance._id, serializer.instance.name, 'hinduworldevents')
                         if saved_location:
                             saved_event_image_paths.append(saved_location)
                 serializer.instance.event_images = saved_event_image_paths
                 serializer.instance.save()
 
-            # Send email to EMAIL_HOST_USER
             send_mail(
                 'New Event Added',
                 f'User ID: {request.user.id}\n'
@@ -100,7 +153,19 @@ class AddEventView(generics.GenericAPIView):
                 "message": "An error occurred.",
                 "error": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+    def update(self, request, pk=None):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            updated_instance = serializer.save()
+            return Response({
+                "message": "Updated successfully",
+                "data": self.get_serializer(updated_instance).data
+            }, status=status.HTTP_200_OK)
+        except Events.DoesNotExist:
+            return Response({'message': 'Object not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 
@@ -142,50 +207,24 @@ class UpdateEventStatus(generics.GenericAPIView):
 
 
 
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from datetime import datetime
 
-class UpcomingEventsView(generics.ListAPIView):
-    serializer_class = EventsSerializer1
-    permission_classes = [IsAuthenticated]
+from django.db.models import Q, Case, When, Value, IntegerField
+from django.utils import timezone
+from rest_framework import generics
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
-    def get_queryset(self):
-        # Filter events where start_date is in the future or today
-        today = datetime.now().date()
 
-        # Assuming your dates are in 'DD-MM-YYYY' format, convert them before filtering
-        events = Events.objects.all()
-        upcoming_events = []
-        for event in events:
-            # Parse the start_date correctly
-            start_date = datetime.strptime(event.start_date, '%d-%m-%Y').date()
-            if start_date >= today:
-                upcoming_events.append(event)
-        return upcoming_events
 
-class PastEventsView(generics.ListAPIView):
-    serializer_class = EventsSerializer1
-    permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        # Filter events where end_date is in the past
-        today = datetime.now().date()
-
-        # Assuming your dates are in 'DD-MM-YYYY' format, convert them before filtering
-        events = Events.objects.all()
-        past_events = []
-        for event in events:
-            # Parse the end_date correctly
-            end_date = datetime.strptime(event.end_date, '%d-%m-%Y').date()
-            if end_date < today:
-                past_events.append(event)
-        return past_events
-    
 
 
 
 class GetEventsByLocation(generics.ListAPIView):
     serializer_class = EventsSerializer1
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         input_value = self.request.query_params.get('input_value')
@@ -224,58 +263,97 @@ class GetEventsByLocation(generics.ListAPIView):
             'object_id'
         )
 
+        # Get today's date
+        today = timezone.now().date()
+
+        # Order the queryset by proximity to today's date and start date
+        queryset = queryset.order_by(
+            Case(
+                When(start_date__gte=today, then=Value(0)),  # Upcoming or today
+                When(start_date__lt=today, then=Value(1)),   # Past events
+                default=Value(2),
+                output_field=IntegerField()
+            ),
+            'start_date'
+        )
+
         return queryset
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
+
+        # Filter for upcoming and completed events
+        today = timezone.now().date()
+        upcoming_events = queryset.filter(start_date__gte=today)
+        completed_events = queryset.filter(start_date__lt=today)
+
+        # Paginate upcoming events
+        page = self.paginate_queryset(upcoming_events)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            event_upcoming_serializer = self.get_serializer(page, many=True)
+            event_completed_serializer = self.get_serializer(completed_events, many=True)
 
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+            return Response({
+                "status": 200,
+                "event_upcoming": event_upcoming_serializer.data,
+                "event_completed": event_completed_serializer.data,
+            })
+
+        # If no pagination, serialize and return all events
+        event_upcoming_serializer = self.get_serializer(upcoming_events, many=True)
+        event_completed_serializer = self.get_serializer(completed_events, many=True)
+
+        return Response({
+            "status": 200,
+            "event_upcoming": event_upcoming_serializer.data,
+            "event_completed": event_completed_serializer.data,
+        })
 
 
 
-from django.db.models import Case, When, Value, IntegerField
 
 
-class EventListView(generics.ListAPIView):
-    serializer_class = EventsSerializer
+
+
+
+
+
+
+
+
+
+
+
+
+class EventstatusView(generics.ListAPIView):
+    serializer_class = EventsSerializer4
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         status_param = self.request.query_params.get('status')
+        now = timezone.now()
 
-        # Get the current date
-        today = timezone.now().date()
+        queryset = Events.objects.all()
+
+        # Update event statuses before returning the queryset
+        for event in queryset:
+            event.update_event_status()
 
         if status_param:
-            # Validate the status_param
             if status_param not in dict(EventStatusEnum.__members__).keys():
                 raise ValidationError("Invalid status value")
+            queryset = queryset.filter(event_status=status_param)
 
-            # Filter by status and order by proximity to today
-            return Events.objects.filter(event_status=status_param).order_by(
-                Case(
-                    When(start_date__gte=today, then=Value(0)),  # Upcoming or today
-                    When(start_date__lt=today, then=Value(1)),   # Past events
-                    default=Value(2),
-                    output_field=IntegerField()
-                ),
-                'start_date'  # Order by start date within each status group
-            )
-        else:
-            # Order all events by proximity to today and then by start date
-            return Events.objects.all().order_by(
-                Case(
-                    When(start_date__gte=today, then=Value(0)),  # Upcoming or today
-                    When(start_date__lt=today, then=Value(1)),   # Past events
-                    default=Value(2),
-                    output_field=IntegerField()
-                ),
-                'start_date'  # Order by start date within each proximity group
-            )
+        # Order events: upcoming events first, then completed events
+        return queryset.order_by(
+            Case(
+                When(event_status=EventStatusEnum.UPCOMING.name, then=Value(0)),
+                When(event_status=EventStatusEnum.COMPLETED.name, then=Value(1)),
+                default=Value(2),
+                output_field=IntegerField()
+            ),
+            'start_date'  # Further order by start date within each status group
+        )
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()

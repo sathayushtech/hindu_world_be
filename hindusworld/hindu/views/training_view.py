@@ -12,6 +12,13 @@ import uuid
 import os
 from rest_framework.exceptions import ValidationError
 from django.db.models import Q
+from rest_framework import viewsets, pagination
+
+class CustomPagination(pagination.PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 
 
 
@@ -22,9 +29,8 @@ class TrainingView(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            # Fetch the Register instance for the logged-in user using the username
             username = request.user.username
-            register_instance = Register.objects.using('login_db').get(username=username)
+            register_instance = Register.objects.get(username=username)
             user_type = register_instance.user_type
 
             # Check if the user type is ADMIN
@@ -121,10 +127,6 @@ class TrainingView(viewsets.ModelViewSet):
 
         except Training.DoesNotExist:
             return Response({'message': 'Object not found'}, status=status.HTTP_404_NOT_FOUND)
-
-
-
-
 
 
 
@@ -256,6 +258,7 @@ class UpdateTrainingStatus(generics.GenericAPIView):
 class UpdateTrainerView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = TrainerSerializer3
+
 
     def get(self, request, id):
         # Retrieve the trainer instance by ID
@@ -397,6 +400,8 @@ class UpdateTrainer(generics.UpdateAPIView):
 
 class GetTrainingsByLocation(generics.ListAPIView):
     serializer_class = TrainingSerializer5
+    pagination_class = CustomPagination
+
 
     def get_queryset(self):
         input_value = self.request.query_params.get('input_value')

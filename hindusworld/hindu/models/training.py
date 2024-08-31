@@ -4,6 +4,8 @@ from ..models import Organization
 from ..enums import status,TrainingType,GeoSite
 from .training_category import TrainingCategory
 from .district import District
+from .user import Register
+
 
 
 
@@ -17,7 +19,9 @@ class Training(models.Model):
     image=models.TextField()
     location=models.CharField(db_column='location',max_length=100)
     duration=models.CharField(db_column='duration',max_length=100)
-    time=models.CharField(db_column='time',max_length=100)
+    start_time=models.CharField(db_column='start_time',max_length=100)
+    end_time=models.CharField(db_column='end_time',max_length=100)
+
     trainer_name=models.CharField(db_column='trainer_name',max_length=100)
     contact_details=models.CharField(db_column='contact_details',max_length=100)
     created_at = models.DateTimeField(db_column='created_at',auto_now_add=True)
@@ -27,7 +31,7 @@ class Training(models.Model):
     category = models.ForeignKey(TrainingCategory, db_column='category', on_delete=models.CASCADE, null=True, blank=True)
     object_id = models.ForeignKey(District, db_column='object_id', on_delete=models.SET_NULL, null=True, blank=True, related_name='Training')
     geo_site = models.CharField(max_length=50, choices=[(e.name, e.value) for e in GeoSite], default=GeoSite.DISTRICT.value)
-
+    user = models.ForeignKey(Register, on_delete=models.SET_NULL, related_name='Training', null=True)
 
  
 
