@@ -10,11 +10,7 @@ class continentsView(viewsets.ModelViewSet):
     queryset = Continent.objects.all()
     serializer_class = continentsSerializer
 
-    
-    # def get_serializer_class(self):
-    #     if self.action == 'list' or self.action == 'create':
-    #         return continentsSerializer
-    #     return continentsSerializer1
+
 
 
 

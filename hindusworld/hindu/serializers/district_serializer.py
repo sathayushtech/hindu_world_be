@@ -21,8 +21,4 @@ class DistrictSerializer(serializers.ModelSerializer):
         return representation
 
       
-    # def to_representation(self, instance):
-    #     representation = super().to_representation(instance)
-    #     if representation.get('headquarters') in [None, '']:
-    #         representation['headquarters'] = 'data not found'
-    #         return representation
+

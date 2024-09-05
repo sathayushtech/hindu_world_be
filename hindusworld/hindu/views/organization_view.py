@@ -11,7 +11,6 @@ from rest_framework.generics import ListAPIView
 from rest_framework import status
 from rest_framework import status as http_status
 from rest_framework.permissions import IsAuthenticated
-from ..location_tree import get_location_hierarchy
 from rest_framework.exceptions import ValidationError
 from django.db.models import Q
 from django.core.mail import send_mail
@@ -383,82 +382,6 @@ class OrgnizationView(viewsets.ModelViewSet):
 
 
 
-
-
-# from rest_framework import generics
-# from rest_framework.response import Response
-# from rest_framework.exceptions import ValidationError
-# from django.db.models import Q
-
-
-# class GetOrganizationsByLocation(generics.ListAPIView):
-#     serializer_class = OrganizationSerializer4
-#     pagination_class = CustomPagination
-
-#     def get_queryset(self):
-#         input_value = self.request.query_params.get('input_value')
-#         category_id = self.request.query_params.get('category_id')
-#         sub_category_id = self.request.query_params.get('sub_category_id')
-
-#         if not input_value and not category_id and not sub_category_id:
-#             raise ValidationError("At least one of 'input_value', 'category_id', or 'sub_category_id' is required.")
-
-#         # Start with all organizations
-#         queryset = Organization.objects.all()
-
-#         # Print to verify input values
-#         print(f"Input Value: {input_value}")
-#         print(f"Category ID: {category_id}")
-#         print(f"Sub Category ID: {sub_category_id}")
-
-#         # Apply input_value filter if provided
-#         if input_value:
-#             continent_query = Q(object_id__state__country__continent__pk=input_value)
-#             country_query = Q(object_id__state__country__pk=input_value)
-#             state_query = Q(object_id__state__pk=input_value)
-#             district_query = Q(object_id__pk=input_value)
-
-#             combined_query = continent_query | country_query | state_query | district_query
-#             queryset = queryset.filter(combined_query)
-
-#             # Print results after input_value filter
-#             print(f"After input_value filter: {queryset.count()}")
-
-#             if not queryset.exists():
-#                 queryset = Organization.objects.filter(object_id=input_value)
-#                 # Print results after fallback filter
-#                 print(f"After fallback filter: {queryset.count()}")
-
-#         # Apply category_id filter if provided
-#         if category_id:
-#             queryset = queryset.filter(category_id=category_id)
-#             # Print results after category_id filter
-#             print(f"After category_id filter: {queryset.count()}")
-
-#         # Apply sub_category_id filter if provided
-#         if sub_category_id:
-#             queryset = queryset.filter(sub_category_id=sub_category_id)
-#             # Print results after sub_category_id filter
-#             print(f"After sub_category_id filter: {queryset.count()}")
-
-#         # Order queryset by _id to avoid pagination warning
-#         queryset = queryset.order_by('_id')
-
-#         return queryset
-
-#     def list(self, request, *args, **kwargs):
-#         queryset = self.get_queryset()
-
-#         # Print the final queryset
-#         print(f"Final Queryset: {queryset}")
-
-#         page = self.paginate_queryset(queryset)
-#         if page is not None:
-#             serializer = self.get_serializer(page, many=True)
-#             return self.get_paginated_response(serializer.data)
-
-#         serializer = self.get_serializer(queryset, many=True)
-#         return Response(serializer.data)
 
 
 

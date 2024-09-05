@@ -19,8 +19,6 @@ router.register(r'training', TrainingView, basename='training')
 router.register(r'eventcategory',EventCategoryView)
 router.register(r'trainingcategory',TrainingCategoryView)
 
-# router.register(r"block",BlockView)
-# router.register(r"village",VillageView)
 
 
 urlpatterns=[
@@ -55,7 +53,9 @@ urlpatterns=[
     path('locationByEvents/', GetEventsByLocation.as_view()),
     path('locationByOrganization/',GetOrganizationsByLocation.as_view()),
     path('locationByTraining/',GetTrainingsByLocation.as_view()),
-    path('eventsstatus', EventstatusView.as_view(), name='event-list'),
+    # path('eventsstatus', EventstatusView.as_view(), name='event-list'),
+    path("home",HomeView.as_view()),
+
 
 
 
