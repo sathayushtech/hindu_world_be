@@ -31,18 +31,6 @@ class CustomPagination(pagination.PageNumberPagination):
 
 
 
-# class EventsViewSet(viewsets.ModelViewSet):
-#     queryset = Events.objects.all()
-#     serializer_class = EventsSerializer1
-
-
-
-        
-
-
-
-
-
 
 class EventsViewSet(viewsets.ModelViewSet):
     queryset = Events.objects.all()
@@ -68,8 +56,8 @@ class EventsViewSet(viewsets.ModelViewSet):
         upcoming_events = queryset.filter(event_status="UPCOMING").order_by('start_date')
         completed_events = queryset.filter(event_status="COMPLETED").order_by('start_date')
 
-        event_upcoming_serializer = EventsSerializer1(upcoming_events, many=True)
-        event_completed_serializer = EventsSerializer1(completed_events, many=True)
+        event_upcoming_serializer = self.get_serializer(upcoming_events, many=True)
+        event_completed_serializer = self.get_serializer(completed_events, many=True)
 
         if not filter_kwargs:
             return Response({
@@ -207,15 +195,6 @@ class UpdateEventStatus(generics.GenericAPIView):
 
 
 
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-
-from django.db.models import Q, Case, When, Value, IntegerField
-from django.utils import timezone
-from rest_framework import generics
-from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
-
 
 
 
@@ -230,44 +209,33 @@ class GetEventsByLocation(generics.ListAPIView):
         input_value = self.request.query_params.get('input_value')
         category = self.request.query_params.get('category')
 
-        # Ensure either input_value or category is provided
         if not input_value and not category:
-            raise ValidationError("Input value or category is required")
+            raise ValidationError("At least one of input_value or category must be provided.")
 
-        queryset = Events.objects.all()
+        today = timezone.now().date()
 
-        # Apply filters based on the input values
+        # Define queries for each location level
+        continent_query = Q(object_id__state__country__continent__pk=input_value)
+        country_query = Q(object_id__state__country__pk=input_value)
+        state_query = Q(object_id__state__pk=input_value)
+        district_query = Q(object_id__pk=input_value)
+
+        # Combine location queries with OR operator
+        combined_query = Q()
         if input_value:
-            # Define queries for each level
-            continent_query = Q(object_id__state__country__continent__pk=input_value)
-            country_query = Q(object_id__state__country__pk=input_value)
-            state_query = Q(object_id__state__pk=input_value)
-            district_query = Q(object_id__pk=input_value)
+            combined_query |= continent_query | country_query | state_query | district_query
 
-            # Combine queries with OR operator
-            combined_query = continent_query | country_query | state_query | district_query
-            queryset = queryset.filter(combined_query)
-
-            # If the queryset is empty, check directly by object_id
-            if not queryset.exists():
-                queryset = Events.objects.filter(object_id=input_value)
-
+        # Apply category filter if provided
         if category:
-            queryset = queryset.filter(category=category)
+            combined_query &= Q(category=category)
 
-        # Prefetch related fields for better performance
-        queryset = queryset.select_related(
+        # Filter by combined query and order by proximity to today's date
+        queryset = Events.objects.filter(combined_query).select_related(
             'object_id__state__country__continent',
             'object_id__state__country',
             'object_id__state',
             'object_id'
-        )
-
-        # Get today's date
-        today = timezone.now().date()
-
-        # Order the queryset by proximity to today's date and start date
-        queryset = queryset.order_by(
+        ).order_by(
             Case(
                 When(start_date__gte=today, then=Value(0)),  # Upcoming or today
                 When(start_date__lt=today, then=Value(1)),   # Past events
@@ -276,6 +244,23 @@ class GetEventsByLocation(generics.ListAPIView):
             ),
             'start_date'
         )
+
+        # Check if queryset is empty and filter directly by object_id
+        if not queryset.exists() and input_value:
+            queryset = Events.objects.filter(object_id=input_value)
+            if category:
+                queryset = queryset.filter(category=category)
+
+            # Reorder by proximity to today's date and start date
+            queryset = queryset.order_by(
+                Case(
+                    When(start_date__gte=today, then=Value(0)),  # Upcoming or today
+                    When(start_date__lt=today, then=Value(1)),   # Past events
+                    default=Value(2),
+                    output_field=IntegerField()
+                ),
+                'start_date'
+            )
 
         return queryset
 
@@ -287,7 +272,7 @@ class GetEventsByLocation(generics.ListAPIView):
         upcoming_events = queryset.filter(start_date__gte=today)
         completed_events = queryset.filter(start_date__lt=today)
 
-        # Paginate upcoming events
+        # Paginate the upcoming events
         page = self.paginate_queryset(upcoming_events)
         if page is not None:
             event_upcoming_serializer = self.get_serializer(page, many=True)
@@ -299,7 +284,7 @@ class GetEventsByLocation(generics.ListAPIView):
                 "event_completed": event_completed_serializer.data,
             })
 
-        # If no pagination, serialize and return all events
+        # If no pagination, return all events
         event_upcoming_serializer = self.get_serializer(upcoming_events, many=True)
         event_completed_serializer = self.get_serializer(completed_events, many=True)
 
@@ -308,15 +293,6 @@ class GetEventsByLocation(generics.ListAPIView):
             "event_upcoming": event_upcoming_serializer.data,
             "event_completed": event_completed_serializer.data,
         })
-
-
-
-
-
-
-
-
-
 
 
 

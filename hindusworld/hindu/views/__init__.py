@@ -8,8 +8,9 @@ from .district_view import DistrictVIew,districts_By_State
 from .user_view import Register_LoginView,Validate_LoginOTPView,MemberDetailsViews,UpdateMemberDetails,GetProfile,GetProfileById
 from .category_view import CategoryView
 from .sub_category_view import SubCategoryView
-from .events_view import EventsViewSet,UpdateEventStatus,GetEventsByLocation,EventstatusView
+from .events_view import EventsViewSet,UpdateEventStatus,GetEventsByLocation
 from .training_view import TrainingView,UpdateTrainingStatus,UpdateTrainerView,GetTrainerView,UpdateTrainer,GetTrainingsByLocation
 from .event_category_view import EventCategoryView
 from .training_category_view import TrainingCategoryView
 from .main_view import EventsMain,TrainingMain,OrganizationMain
+from .home_view import HomeView

@@ -145,6 +145,13 @@ class OrganizationSerializer5(serializers.ModelSerializer):
         
         return representation
 
+ 
 
+class OrganizationSerializer6(serializers.ModelSerializer):
 
+    class Meta:
+        model = Organization
+        fields = ['_id','organization_name','org_logo']        
+
+        
 
