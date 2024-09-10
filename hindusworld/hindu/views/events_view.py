@@ -39,36 +39,35 @@ class EventsViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
 
-
     def list(self, request):
-        filter_kwargs = {}
-        for key, value in request.query_params.items():
-            filter_kwargs[key] = value
+    # Extract query parameters for filtering
+        filter_kwargs = request.query_params.dict()
 
+        # Get the queryset filtered by the provided query parameters
         queryset = Events.objects.filter(**filter_kwargs)
+
+        # If no results found
         if not queryset.exists():
             return Response({
                 'message': 'Data not found',
                 'status': 404
             }, status=status.HTTP_404_NOT_FOUND)
 
-        # Filter upcoming and completed events, sorted by start date
+        # Filter events based on their status
         upcoming_events = queryset.filter(event_status="UPCOMING").order_by('start_date')
         completed_events = queryset.filter(event_status="COMPLETED").order_by('start_date')
 
+        # Serialize both upcoming and completed events
         event_upcoming_serializer = self.get_serializer(upcoming_events, many=True)
         event_completed_serializer = self.get_serializer(completed_events, many=True)
 
-        if not filter_kwargs:
-            return Response({
-                "status": 200,
-                "event_upcoming": event_upcoming_serializer.data,
-                "event_completed": event_completed_serializer.data,
-            })
+        # Return the formatted response
+        return Response({
+            "status": 200,
+            "event_upcoming": event_upcoming_serializer.data,
+            "event_completed": event_completed_serializer.data,
+        })
 
-        # Return the filtered and sorted queryset
-        serializer = EventsSerializer1(queryset, many=True)
-        return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
         try:
@@ -293,6 +292,7 @@ class GetEventsByLocation(generics.ListAPIView):
             "event_upcoming": event_upcoming_serializer.data,
             "event_completed": event_completed_serializer.data,
         })
+
 
 
 

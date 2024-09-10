@@ -100,8 +100,6 @@ class MemberDetailsViews(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-
-
 class GetProfile(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -119,22 +117,6 @@ class GetProfile(APIView):
             else:
                 item_data['profile_pic'] = None
 
-            # Process image
-            image_path = item.image
-            if image_path:
-                encoded_string = image_path_to_binary(image_path)
-                item_data['image'] = encoded_string.decode('utf-8') if encoded_string else None
-            else:
-                item_data['image'] = None
-
-            # Process video
-            video_path = item.video
-            if video_path:
-                encoded_string = video_path_to_binary(video_path)  # Use appropriate function for videos
-                item_data['video'] = encoded_string.decode('utf-8') if encoded_string else None
-            else:
-                item_data['video'] = None
-
             # Process certificate
             certificate_path = item.certificate
             if certificate_path:
@@ -146,6 +128,9 @@ class GetProfile(APIView):
             response_data.append(item_data)
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+
 
 
 
@@ -164,22 +149,6 @@ class GetProfileById(APIView):
         else:
             item_data['profile_pic'] = None
 
-        # Process image
-        image_path = item.image
-        if image_path:
-            encoded_string = image_path_to_binary(image_path)
-            item_data['image'] = encoded_string if encoded_string else None
-        else:
-            item_data['image'] = None
-
-        # Process video
-        video_path = item.video
-        if video_path:
-            encoded_string = video_path_to_binary(video_path)  # Use appropriate function for videos
-            item_data['video'] = encoded_string if encoded_string else None
-        else:
-            item_data['video'] = None
-
         # Process certificate
         certificate_path = item.certificate
         if certificate_path:
@@ -197,13 +166,6 @@ class GetProfileById(APIView):
 
 
 
-
-
-
-
-
-
-
 class UpdateMemberDetails(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = MemberSerializer
@@ -212,8 +174,6 @@ class UpdateMemberDetails(generics.GenericAPIView):
         instance = get_object_or_404(Register, id=id)
         profile_pic = request.data.get('profile_pic')
         certificate = request.data.get('certificate')
-        video = request.data.get('video')
-        image = request.data.get('image')
 
         mutable_data = request.data.copy()
         serializer = self.get_serializer(instance, data=mutable_data)
@@ -237,22 +197,6 @@ class UpdateMemberDetails(generics.GenericAPIView):
         else:
             serializer.instance.certificate = None
 
-        # Video handling
-        if video and video != "null":
-            saved_location = save_video_to_folder(video, serializer.instance.id, serializer.instance.full_name, 'video')
-            if saved_location:
-                serializer.instance.video = saved_location
-        else:
-            serializer.instance.video = None
-
-        # Image handling
-        if image and image != "null":
-            saved_location = save_image_to_folder(image, serializer.instance.id, serializer.instance.full_name, 'image')
-            if saved_location:
-                serializer.instance.image = saved_location
-        else:
-            serializer.instance.image = None
-
         serializer.instance.save()
 
         # Update response data
@@ -261,9 +205,5 @@ class UpdateMemberDetails(generics.GenericAPIView):
             response_data['profile_pic'] = None
         if not certificate or certificate == "null":
             response_data['certificate'] = None
-        if not video or video == "null":
-            response_data['video'] = None
-        if not image or image == "null":
-            response_data['image'] = None
         
         return Response(response_data, status=status.HTTP_200_OK)

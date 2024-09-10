@@ -72,10 +72,7 @@ class OrgnisationSerializer2(serializers.ModelSerializer):
         fields = ['status']        
 
 
-class OrganizationSerializer3(serializers.ModelSerializer):
- 
-    image_location = serializers.SerializerMethodField()
-    # object_id=serializers.SerializerMethodField()
+
 
 
 
@@ -153,5 +150,5 @@ class OrganizationSerializer6(serializers.ModelSerializer):
         model = Organization
         fields = ['_id','organization_name','org_logo']        
 
-        
+
 

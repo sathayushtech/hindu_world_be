@@ -3,7 +3,7 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from ..models import Organization, Country,Continent,Register,District
-from ..serializers.organization_serializer import OrgnisationSerializer,OrgnisationSerializer1,OrgnisationSerializer2,OrganizationSerializer3,OrganizationSerializer4
+from ..serializers.organization_serializer import OrgnisationSerializer,OrgnisationSerializer1,OrgnisationSerializer2,OrganizationSerializer4
 from ..utils import save_image_to_folder
 from ..pagination.org_pagination import OrganizationPagination
 from ..pagination.orgbycountry_pagination import orgByCountryPagination
