@@ -105,7 +105,7 @@ def image_path_to_binary(filename):
             with open(img_path, "rb") as image_file:
                 image_data = image_file.read()
                 base64_encoded_image = base64.b64encode(image_data)
-                print(base64_encoded_image,"123456")
+                # print(base64_encoded_image,"123456")
                 return base64_encoded_image
         else:
             return None
