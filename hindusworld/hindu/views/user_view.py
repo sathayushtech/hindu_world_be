@@ -29,16 +29,16 @@ class Register_LoginView(generics.GenericAPIView):
         message = ""
         
         try:
-            user = Register.objects.using('login_db').get(username=username)
+            user = Register.objects.using('gramadevata').get(username=username)
             # Username already exists, update OTP
             user.verification_otp = otp
             user.verification_otp_created_time = timezone.now()
-            user.save(using='login_db')
+            user.save(using='gramadevata')
             message = " OTP sent successfully"
         except Register.DoesNotExist:
             # Username does not exist, create new user and set OTP
-            user = Register.objects.using('login_db').create(username=username, verification_otp=otp, verification_otp_created_time=timezone.now())
-            user.save(using='login_db')
+            user = Register.objects.using('gramadevata').create(username=username, verification_otp=otp, verification_otp_created_time=timezone.now())
+            user.save(using='gramadevata')
             message = "OTP sent successfully"
 
         # Determine if username is an email or phone number
@@ -61,7 +61,7 @@ class Validate_LoginOTPView(generics.GenericAPIView):
         verification_otp = request.data.get('verification_otp')
         
         try:
-            user = Register.objects.using('login_db').get(username=username)
+            user = Register.objects.using('gramadevata').get(username=username)
         except Register.DoesNotExist:
             return Response({"error": "Invalid username"}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -73,7 +73,7 @@ class Validate_LoginOTPView(generics.GenericAPIView):
         
         # Update user status to ACTIVE
         user.status = 'ACTIVE'
-        user.save(using='login_db')
+        user.save(using='gramadevata')
 
         # Send a welcome email if the username is an email
         if validate_email(username):

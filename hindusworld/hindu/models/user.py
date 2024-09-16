@@ -15,8 +15,8 @@ from ..enums import TrainingType
 class Register(AbstractUser):
     id = models.CharField(db_column='id', primary_key=True, max_length=45,default=uuid.uuid1, editable=False)
     full_name = models.CharField(db_column='full_name', max_length=200)
-    name = models.CharField(db_column='name', max_length=200)
-    dob = models.DateField(db_column='dob')
+    # name = models.CharField(db_column='name', max_length=200)
+    dob = models.DateField(null=True,blank=True)
     contact_number = models.CharField(db_column='contact_number', max_length=10, null=True, blank=True)
     father_name = models.CharField(db_column='father_name', max_length=200, null=True, blank=True)
     profile_pic = models.TextField(db_column='profile_pic', null=True, blank=True)
@@ -32,7 +32,7 @@ class Register(AbstractUser):
     # map_location = models.TextField(db_column='map_location',null=True)
     experience = models.CharField(db_column='experience', max_length=50,null=True)
     achievements = models.CharField(db_column='achievements',max_length=500,null=True,blank=True)
-    email = models.EmailField(db_column='email',max_length=50)
+    email = models.EmailField(db_column='email',max_length=50,null=True,blank=True)
     user_type = models.CharField(db_column='user_type',max_length=45, choices=[(e.name, e.value)for e in UserType], default=UserType.MEMBER.value)
     # groups = models.ManyToManyField(
     #     'auth.Group',
@@ -49,6 +49,6 @@ class Register(AbstractUser):
     #     verbose_name='user permissions',
     # )
     class Meta:
-        db_table = "profile"
+        db_table = "user"
     def __str__(self):
         return self.username

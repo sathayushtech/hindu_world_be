@@ -127,7 +127,7 @@ DATABASES = {
         'HOST': os.getenv("DB_HOST"),
         'PORT': os.getenv("DB_PORT"),
     },
-    'login_db': {
+    'gramadevata': {
         'ENGINE': os.getenv("LOGIN_DB_ENGINE"),
         'NAME': os.getenv("LOGIN_DB_NAME"),
         'USER': os.getenv("LOGIN_DB_USER"),
