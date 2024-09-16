@@ -19,8 +19,8 @@ class CategoryView(viewsets.ModelViewSet):
         # Get all SubCategories related to this Category
         subcategories = SubCategory.objects.filter(category_id=category)
 
-        # Retrieve only the SubCategory IDs
-        subcategory_ids = subcategories.values_list('_id', 'name')
+        # Create a list of dictionaries with '_id' and 'name' as keys
+        subcategory_data = [{"_id": subcategory._id, "name": subcategory.name} for subcategory in subcategories]
 
-        # Return the list of SubCategory IDs in the response
-        return Response(list(subcategory_ids))
+        # Return the list of SubCategory data in the response
+        return Response(subcategory_data)
