@@ -9,6 +9,8 @@ from .district import District
 from datetime import datetime
 from .user import Register
 from dateutil.relativedelta import relativedelta
+from pytz import timezone as pytz_timezone
+
 
 
 
@@ -36,23 +38,39 @@ class Events(models.Model):
 
 
 
+
     @property
     def relative_time(self):
         if not self.start_date:
             return "Unknown"
-        
-        # If start_time is missing, use just the start_date for comparison
+
+        # Get IST timezone
+        ist_timezone = pytz_timezone('Asia/Kolkata')
+
+        # Get the current time in IST (timezone-aware)
+        now = timezone.now().astimezone(ist_timezone)
+        print(f"Current time (now) in IST: {now}")  # Debugging current time in IST
+
+        # Convert start_date and start_time to a timezone-aware datetime in IST
         try:
             if self.start_time:
-                start_datetime = timezone.make_aware(datetime.combine(self.start_date, self.start_time))
+                # Combine start_date and start_time and make it timezone aware in IST
+                start_datetime = datetime.combine(self.start_date, self.start_time)
+                start_datetime = ist_timezone.localize(start_datetime)  # Localize to IST timezone
             else:
-                start_datetime = timezone.make_aware(datetime.combine(self.start_date, datetime.min.time()))  # Assume start of the day if time is missing
+                # Assume start of the day if time is missing
+                start_datetime = datetime.combine(self.start_date, datetime.min.time())
+                start_datetime = ist_timezone.localize(start_datetime)  # Localize to IST timezone
+            
+            print(f"Event start datetime in IST: {start_datetime}")  # Debugging start datetime in IST
         except ValueError as e:
             return f"Invalid date or time format: {e}"
-        
-        now = timezone.now()
+
+        # Check if the event has already started or not
         if start_datetime > now:
             diff = relativedelta(start_datetime, now)
+            print(f"Time difference: {diff}")  # Debugging time difference
+            
             if diff.years > 0:
                 return f"{diff.years} year{'s' if diff.years > 1 else ''} to go"
             elif diff.months > 0:
@@ -66,7 +84,10 @@ class Events(models.Model):
             else:
                 return "Less than a minute to go"
         else:
+            # Event has already started, so show the time since it started
             diff = relativedelta(now, start_datetime)
+            print(f"Time difference after event started: {diff}")  # Debugging difference for past events
+
             if diff.years > 0:
                 return f"{diff.years} year{'s' if diff.years > 1 else ''} ago"
             elif diff.months > 0:
@@ -79,22 +100,37 @@ class Events(models.Model):
                 return f"{diff.minutes} minute{'s' if diff.minutes > 1 else ''} ago"
             else:
                 return "Less than a minute ago"
+            
+
 
 
     def update_event_status(self):
+    # Get the current time in the correct timezone
         now = timezone.now()
-        
-        # Make sure the logic does not cause recursive calls to save()
-        if self.end_date and self.end_time:
-            end_datetime = timezone.make_aware(datetime.combine(self.end_date, self.end_time))
+
+        # Only update status if both end_date and end_time are present
+        if self.end_date:
+            # Combine end_date and end_time (use midnight if end_time is missing)
+            end_datetime = timezone.make_aware(datetime.combine(self.end_date, self.end_time or datetime.max.time()))
+
+            # Debugging statement to check the time comparisons
+            print(f"Current time: {now}, Event end time: {end_datetime}")
+
+            # Mark the event as COMPLETED if its end time has passed
             if end_datetime < now and self.event_status != EventStatusEnum.COMPLETED.name:
+                print("Event has ended, updating status to COMPLETED")
                 self.event_status = EventStatusEnum.COMPLETED.name
                 self.save(update_fields=['event_status'])  # Save only the event_status field
+
+        # If no end_date is present, use start_date to mark the event as completed
         elif self.start_date:
             start_datetime = timezone.make_aware(datetime.combine(self.start_date, self.start_time or datetime.min.time()))
+
+            # Mark the event as COMPLETED if the start time has passed and there's no end_date
             if start_datetime < now and self.event_status != EventStatusEnum.COMPLETED.name:
+                print("Event has passed its start time, updating status to COMPLETED")
                 self.event_status = EventStatusEnum.COMPLETED.name
-                self.save(update_fields=['event_status'])  # Avoid triggering save again
+                self.save(update_fields=['event_status'])
 
 
 

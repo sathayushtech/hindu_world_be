@@ -35,12 +35,14 @@ class CustomPagination(pagination.PageNumberPagination):
 class EventsViewSet(viewsets.ModelViewSet):
     queryset = Events.objects.all()
     serializer_class = EventsSerializer1
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
 
     def list(self, request):
     # Extract query parameters for filtering
+        for event in Events.objects.all():
+            event.update_event_status()
         filter_kwargs = request.query_params.dict()
 
         # Get the queryset filtered by the provided query parameters
@@ -84,7 +86,7 @@ class EventsViewSet(viewsets.ModelViewSet):
             register_instance = Register.objects.get(username=username)
             is_member = register_instance.is_member
 
-            if is_member == "NO":
+            if is_member == "FALSE":
                 return Response({
                     "message": "Cannot create event. Membership details are required. Update your profile and become a member."
                 }, status=status.HTTP_400_BAD_REQUEST)
