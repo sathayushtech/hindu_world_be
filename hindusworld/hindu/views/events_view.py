@@ -35,7 +35,7 @@ class CustomPagination(pagination.PageNumberPagination):
 class EventsViewSet(viewsets.ModelViewSet):
     queryset = Events.objects.all()
     serializer_class = EventsSerializer1
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
 
@@ -86,7 +86,7 @@ class EventsViewSet(viewsets.ModelViewSet):
             register_instance = Register.objects.get(username=username)
             is_member = register_instance.is_member
 
-            if is_member == "FALSE":
+            if is_member == "false":
                 return Response({
                     "message": "Cannot create event. Membership details are required. Update your profile and become a member."
                 }, status=status.HTTP_400_BAD_REQUEST)
@@ -201,7 +201,6 @@ class UpdateEventStatus(generics.GenericAPIView):
 
 
 
-
 class GetEventsByLocation(generics.ListAPIView):
     serializer_class = EventsSerializer1
     pagination_class = CustomPagination
@@ -209,34 +208,50 @@ class GetEventsByLocation(generics.ListAPIView):
     def get_queryset(self):
         input_value = self.request.query_params.get('input_value')
         category = self.request.query_params.get('category')
+        sub_category = self.request.query_params.get('sub_category')
 
-        if not input_value and not category:
-            raise ValidationError("At least one of input_value or category must be provided.")
+        # Validate that at least one of the filters is provided
+        if not input_value and not category and not sub_category:
+            raise ValidationError("At least one of 'input_value', 'category', or 'sub_category' is required.")
 
         today = timezone.now().date()
 
         # Define queries for each location level
-        continent_query = Q(object_id__state__country__continent__pk=input_value)
-        country_query = Q(object_id__state__country__pk=input_value)
-        state_query = Q(object_id__state__pk=input_value)
-        district_query = Q(object_id__pk=input_value)
-
-        # Combine location queries with OR operator
-        combined_query = Q()
         if input_value:
-            combined_query |= continent_query | country_query | state_query | district_query
+            # Try matching continent
+            continent_match = Events.objects.filter(object_id__state__country__continent__pk=input_value)
+            if continent_match.exists():
+                queryset = continent_match
+            else:
+                # Try matching country
+                country_match = Events.objects.filter(object_id__state__country__pk=input_value)
+                if country_match.exists():
+                    queryset = country_match
+                else:
+                    # Try matching state
+                    state_match = Events.objects.filter(object_id__state__pk=input_value)
+                    if state_match.exists():
+                        queryset = state_match
+                    else:
+                        # Try matching district
+                        district_match = Events.objects.filter(object_id__pk=input_value)
+                        if district_match.exists():
+                            queryset = district_match
+                        else:
+                            # No match found, return an empty queryset
+                            queryset = Events.objects.none()
+        else:
+            queryset = Events.objects.all()
 
-        # Apply category filter if provided
+        # Apply category and subcategory filtering
         if category:
-            combined_query &= Q(category=category)
+            queryset = queryset.filter(Q(category_id=category) | Q(sub_category_id=category))
 
-        # Filter by combined query and order by proximity to today's date
-        queryset = Events.objects.filter(combined_query).select_related(
-            'object_id__state__country__continent',
-            'object_id__state__country',
-            'object_id__state',
-            'object_id'
-        ).order_by(
+        if sub_category:
+            queryset = queryset.filter(sub_category_id=sub_category)
+
+        # Order by proximity to today's date
+        queryset = queryset.order_by(
             Case(
                 When(start_date__gte=today, then=Value(0)),  # Upcoming or today
                 When(start_date__lt=today, then=Value(1)),   # Past events
@@ -245,23 +260,6 @@ class GetEventsByLocation(generics.ListAPIView):
             ),
             'start_date'
         )
-
-        # Check if queryset is empty and filter directly by object_id
-        if not queryset.exists() and input_value:
-            queryset = Events.objects.filter(object_id=input_value)
-            if category:
-                queryset = queryset.filter(category=category)
-
-            # Reorder by proximity to today's date and start date
-            queryset = queryset.order_by(
-                Case(
-                    When(start_date__gte=today, then=Value(0)),  # Upcoming or today
-                    When(start_date__lt=today, then=Value(1)),   # Past events
-                    default=Value(2),
-                    output_field=IntegerField()
-                ),
-                'start_date'
-            )
 
         return queryset
 
@@ -294,51 +292,3 @@ class GetEventsByLocation(generics.ListAPIView):
             "event_upcoming": event_upcoming_serializer.data,
             "event_completed": event_completed_serializer.data,
         })
-
-
-
-
-
-
-
-
-
-class EventstatusView(generics.ListAPIView):
-    serializer_class = EventsSerializer4
-    pagination_class = CustomPagination
-
-    def get_queryset(self):
-        status_param = self.request.query_params.get('status')
-        now = timezone.now()
-
-        queryset = Events.objects.all()
-
-        # Update event statuses before returning the queryset
-        for event in queryset:
-            event.update_event_status()
-
-        if status_param:
-            if status_param not in dict(EventStatusEnum.__members__).keys():
-                raise ValidationError("Invalid status value")
-            queryset = queryset.filter(event_status=status_param)
-
-        # Order events: upcoming events first, then completed events
-        return queryset.order_by(
-            Case(
-                When(event_status=EventStatusEnum.UPCOMING.name, then=Value(0)),
-                When(event_status=EventStatusEnum.COMPLETED.name, then=Value(1)),
-                default=Value(2),
-                output_field=IntegerField()
-            ),
-            'start_date'  # Further order by start date within each status group
-        )
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)

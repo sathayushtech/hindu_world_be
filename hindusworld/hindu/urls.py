@@ -6,8 +6,8 @@ from .views import *
 
 
 
-router=DefaultRouter()
-router.register(r'organizations',OrgnizationView)
+router=DefaultRouter(trailing_slash = False)
+router.register(r"organizations",OrgnizationView)
 router.register(r'countries',CountryView)
 router.register(r'continents',continentsView)
 router.register(r'state',StateViews)  
@@ -18,6 +18,8 @@ router.register(r'events', EventsViewSet, basename='events')
 router.register(r'training', TrainingView, basename='training')
 router.register(r'eventcategory',EventCategoryView)
 router.register(r'trainingcategory',TrainingCategoryView)
+router.register(r'eventsubcategory',EventSubCategoryView)
+router.register(r'trainingsubcategory',TrainingSubCategoryView)
 
 
 
@@ -36,25 +38,19 @@ urlpatterns=[
     path('updateMemberDetails/<str:id>',UpdateMemberDetails.as_view()),
     path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
     path('states_by_country/<str:country>',states_by_country.as_view()),
-    path('districts_by_state/<str:state>/', districts_By_State.as_view(), name='districts_by_state'),
-    path('profile_get_by_id/<str:id>/',GetProfileById.as_view()),
-    path('profile_get/',GetProfile.as_view()),
-    # path('events/', AddEventView.as_view(), name='add-event'),
-    path('eventsupdatestatus/<uuid:event_id>/', UpdateEventStatus.as_view(), name='update-event-status'),
-    path('trainingupdatestatus/<uuid:training_id>/update-status/', UpdateTrainingStatus.as_view(), name='update-training-status'),
+    path('districts_by_state/<str:state>', districts_By_State.as_view(), name='districts_by_state'),
+    path('profile_get_by_id/<str:id>',GetProfileById.as_view()),
+    path('profile_get',GetProfile.as_view()),
+    path('eventupdatestatus/<uuid:event_id>', UpdateEventStatus.as_view(), name='update-event-status'),
+    path('trainingupdatestatus/<uuid:training_id>/update-status', UpdateTrainingStatus.as_view(), name='update-training-status'),
     path('eventsmain', EventsMain.as_view(), name='events-main'),
     path('organizationsmain', OrganizationMain.as_view(), name='organizations-main'),
     path('trainingsmain', TrainingMain.as_view(), name='trainings-main'),
-    # path('updatetrainer/<uuid:id>/', UpdateTrainerView.as_view(), name='update_trainer'),
-    # path('getTrainer/<uuid:id>/',GetTrainerView.as_view()),
-    # path('updateTrainer/<uuid:id>/',UpdateTrainer.as_view()),
-    # path('eventsupcoming', UpcomingEventsView.as_view(), name='upcoming-events'),
-    # path('eventspast', PastEventsView.as_view(), name='past-events'),
-    path('locationByEvents/', GetEventsByLocation.as_view()),
-    path('locationByOrganization/',GetOrganizationsByLocation.as_view()),
-    path('locationByTraining/',GetTrainingsByLocation.as_view()),
-    # path('eventsstatus', EventstatusView.as_view(), name='event-list'),
+    path('locationByEvents', GetEventsByLocation.as_view()),
+    path('locationByOrganization',GetOrganizationsByLocation.as_view()),
+    path('locationByTraining',GetTrainingsByLocation.as_view()),
     path("home",HomeView.as_view()),
+
 
 
 

@@ -252,82 +252,57 @@ class UpdateTrainingStatus(generics.GenericAPIView):
 
 
 
-
-
-
-
-
-
 class GetTrainingsByLocation(generics.ListAPIView):
-    serializer_class = TrainingSerializer5
+    serializer_class = TrainingSerializer5  # Replace with your actual serializer
     pagination_class = CustomPagination
-
 
     def get_queryset(self):
         input_value = self.request.query_params.get('input_value')
         category = self.request.query_params.get('category')
+        sub_category = self.request.query_params.get('sub_category')
 
-        if not input_value and not category:
-            raise ValidationError("Input value or category is required")
+        # Validate that at least one of the filters is provided
+        if not input_value and not category and not sub_category:
+            raise ValidationError("At least one of 'input_value', 'category', or 'sub_category' is required.")
 
-        if input_value and not category:
-            # Define queries for each level
-            continent_query = Q(object_id__state__country__continent__pk=input_value)
-            country_query = Q(object_id__state__country__pk=input_value)
-            state_query = Q(object_id__state__pk=input_value)
-            district_query = Q(object_id__pk=input_value)
+        queryset = Training.objects.all()  # Replace with your actual model
 
-            # Combine queries with OR operator
-            combined_query = continent_query | country_query | state_query | district_query
+        # Check input_value against continent, country, state, and district
+        if input_value:
+            # Try matching continent
+            continent_match = Training.objects.filter(object_id__state__country__continent__pk=input_value)
+            if continent_match.exists():
+                queryset = continent_match
+            else:
+                # Try matching country
+                country_match = Training.objects.filter(object_id__state__country__pk=input_value)
+                if country_match.exists():
+                    queryset = country_match
+                else:
+                    # Try matching state
+                    state_match = Training.objects.filter(object_id__state__pk=input_value)
+                    if state_match.exists():
+                        queryset = state_match
+                    else:
+                        # Try matching district
+                        district_match = Training.objects.filter(object_id__pk=input_value)
+                        if district_match.exists():
+                            queryset = district_match
+                        else:
+                            # No match found, return an empty queryset
+                            queryset = Training.objects.none()
 
-            # Filter trainings based on combined query
-            queryset = Training.objects.filter(combined_query).select_related(
-                'object_id__state__country__continent',
-                'object_id__state__country',
-                'object_id__state',
-                'object_id'
-            )
+        # Apply category and subcategory filtering
+        if category:
+            queryset = queryset.filter(Q(category_id=category) | Q(sub_category_id=category))
 
-            # Check if queryset is empty and filter directly by object_id
-            if not queryset.exists():
-                queryset = Training.objects.filter(object_id=input_value)
+        if sub_category:
+            queryset = queryset.filter(sub_category_id=sub_category)
 
-            return queryset
+        # Order by '_id' to ensure compatibility with pagination
+        queryset = queryset.order_by('_id')
 
-        elif category and not input_value:
-            # Filter trainings only by category
-            queryset = Training.objects.filter(category=category)
-            return queryset
-
-        else:
-            # Both input_value and category are provided
-            # Define queries for each level
-            continent_query = Q(object_id__state__country__continent__pk=input_value)
-            country_query = Q(object_id__state__country__pk=input_value)
-            state_query = Q(object_id__state__pk=input_value)
-            district_query = Q(object_id__pk=input_value)
-
-            # Combine queries with OR operator
-            combined_query = continent_query | country_query | state_query | district_query
-
-            # Apply category filter if provided
-            combined_query &= Q(category=category)
-
-            # Filter trainings based on combined query
-            queryset = Training.objects.filter(combined_query).select_related(
-                'object_id__state__country__continent',
-                'object_id__state__country',
-                'object_id__state',
-                'object_id'
-            )
-
-            # Check if queryset is empty and filter directly by object_id
-            if not queryset.exists():
-                queryset = Training.objects.filter(object_id=input_value)
-                if category:
-                    queryset = queryset.filter(category=category)
-
-            return queryset
+        return queryset
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()

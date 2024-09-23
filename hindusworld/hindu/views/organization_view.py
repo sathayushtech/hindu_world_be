@@ -5,8 +5,6 @@ from rest_framework.views import APIView
 from ..models import Organization, Country,Continent,Register,District
 from ..serializers.organization_serializer import OrgnisationSerializer,OrgnisationSerializer1,OrgnisationSerializer2,OrganizationSerializer4
 from ..utils import save_image_to_folder
-from ..pagination.org_pagination import OrganizationPagination
-from ..pagination.orgbycountry_pagination import orgByCountryPagination
 from rest_framework.generics import ListAPIView
 from rest_framework import status
 from rest_framework import status as http_status
@@ -28,9 +26,9 @@ from django.core.exceptions import FieldDoesNotExist
 from rest_framework import viewsets, pagination
 
 class CustomPagination(pagination.PageNumberPagination):
-    page_size = 50
+    page_size = 100
     page_size_query_param = 'page_size'
-    max_page_size = 1000 
+    max_page_size = 100
 
 
 
@@ -54,7 +52,7 @@ class AddOrgnization(generics.GenericAPIView):
             print(f"is_member: {is_member}")
 
             # Check if the user is a member
-            if is_member == "FALSE":
+            if is_member == "false":
                 print("User is not a member")
                 return Response({
                     "message": "Cannot create organization. Membership details are required. Update your profile and become a member."
@@ -71,7 +69,7 @@ class AddOrgnization(generics.GenericAPIView):
             # Handle organization images and logo if provided
             org_images = request.data.get('org_images')
             org_logo = request.data.get('org_logo')
-            govt_id_proof=request.data.get('govt_id_proof')
+            # govt_id_proof=request.data.get('govt_id_proof')
 
             if org_images and org_images != "null":
                 saved_location = save_image_to_folder(org_images, serializer.instance._id, serializer.instance.organization_name,'hinduworldimages')
@@ -87,10 +85,10 @@ class AddOrgnization(generics.GenericAPIView):
 
 
 
-            if govt_id_proof and govt_id_proof != "null":
-                saved_govt_id_proof_location = save_image_to_folder(govt_id_proof, serializer.instance._id, serializer.instance.organization_name,'orgdocument')
-                if saved_govt_id_proof_location:
-                     serializer.instance.govt_id_proof = saved_govt_id_proof_location
+            # if govt_id_proof and govt_id_proof != "null":
+            #     saved_govt_id_proof_location = save_image_to_folder(govt_id_proof, serializer.instance._id, serializer.instance.organization_name,'orgdocument')
+            #     if saved_govt_id_proof_location:
+            #          serializer.instance.govt_id_proof = saved_govt_id_proof_location
 
             serializer.instance.save()
 
@@ -141,7 +139,7 @@ class AddOrgnization(generics.GenericAPIView):
 
 class GetItemByfield_InputView(generics.GenericAPIView):
     serializer_class = OrgnisationSerializer
-    pagination_class = orgByCountryPagination
+    pagination_class = CustomPagination
 
     def get(self, request, input_value, field_name):
         try:
@@ -170,7 +168,7 @@ class GetItemByfield_InputView(generics.GenericAPIView):
 
 class GetItemByfields_InputViews(generics.GenericAPIView):
     serializer_class = OrgnisationSerializer
-    pagination_class = orgByCountryPagination
+    pagination_class = CustomPagination
 
     def get(self, request, input_value1, field_name1, input_value2=None, field_name2=None):
         try:
@@ -337,7 +335,7 @@ class GetbyDistrictLocationOrganization(generics.ListAPIView):
 class OrgnizationView(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer4
-    pagination_class = OrganizationPagination
+    pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = [
         'organization_name', 
@@ -385,6 +383,61 @@ class OrgnizationView(viewsets.ModelViewSet):
 
 
 
+# class GetOrganizationsByLocation(generics.ListAPIView):
+#     serializer_class = OrganizationSerializer4
+#     pagination_class = CustomPagination
+
+#     def get_queryset(self):
+#         input_value = self.request.query_params.get('input_value')
+#         category_id = self.request.query_params.get('category_id')
+#         sub_category_id = self.request.query_params.get('sub_category_id')
+
+#         if not input_value and not category_id and not sub_category_id:
+#             raise ValidationError("At least one of 'input_value', 'category_id', or 'sub_category_id' is required.")
+
+#         # Start with all organizations
+#         queryset = Organization.objects.all()
+
+#         # Apply input_value filter if provided
+#         if input_value:
+#             continent_query = Q(object_id__state__country__continent__pk=input_value)
+#             country_query = Q(object_id__state__country__pk=input_value)
+#             state_query = Q(object_id__state__pk=input_value)
+#             district_query = Q(object_id__pk=input_value)
+
+#             combined_query = continent_query | country_query | state_query | district_query
+#             queryset = queryset.filter(combined_query)
+
+#             if not queryset.exists():
+#                 queryset = Organization.objects.filter(object_id=input_value)
+
+#         # Apply category_id or sub_category_id filter
+#         if category_id:
+#             queryset = queryset.filter(Q(category_id=category_id) | Q(sub_category_id=category_id))
+
+#         # Apply sub_category_id filter if provided
+#         if sub_category_id:
+#             queryset = queryset.filter(sub_category_id=sub_category_id)
+
+#         # Order queryset by _id to avoid pagination warning
+#         queryset = queryset.order_by('_id')
+
+#         return queryset
+
+#     def list(self, request, *args, **kwargs):
+#         queryset = self.get_queryset()
+#         page = self.paginate_queryset(queryset)
+#         if page is not None:
+#             serializer = self.get_serializer(page, many=True)
+#             return self.get_paginated_response(serializer.data)
+
+#         serializer = self.get_serializer(queryset, many=True)
+#         return Response(serializer.data)
+
+
+
+
+
 class GetOrganizationsByLocation(generics.ListAPIView):
     serializer_class = OrganizationSerializer4
     pagination_class = CustomPagination
@@ -394,34 +447,45 @@ class GetOrganizationsByLocation(generics.ListAPIView):
         category_id = self.request.query_params.get('category_id')
         sub_category_id = self.request.query_params.get('sub_category_id')
 
+        # Validate that at least one of the filters is provided
         if not input_value and not category_id and not sub_category_id:
             raise ValidationError("At least one of 'input_value', 'category_id', or 'sub_category_id' is required.")
 
-        # Start with all organizations
         queryset = Organization.objects.all()
 
-        # Apply input_value filter if provided
+        # Check input_value against continent, country, state, and district
         if input_value:
-            continent_query = Q(object_id__state__country__continent__pk=input_value)
-            country_query = Q(object_id__state__country__pk=input_value)
-            state_query = Q(object_id__state__pk=input_value)
-            district_query = Q(object_id__pk=input_value)
+            # Try matching continent
+            continent_match = Organization.objects.filter(object_id__state__country__continent__pk=input_value)
+            if continent_match.exists():
+                queryset = continent_match
+            else:
+                # Try matching country
+                country_match = Organization.objects.filter(object_id__state__country__pk=input_value)
+                if country_match.exists():
+                    queryset = country_match
+                else:
+                    # Try matching state
+                    state_match = Organization.objects.filter(object_id__state__pk=input_value)
+                    if state_match.exists():
+                        queryset = state_match
+                    else:
+                        # Try matching district
+                        district_match = Organization.objects.filter(object_id__pk=input_value)
+                        if district_match.exists():
+                            queryset = district_match
+                        else:
+                            # No match found, return an empty queryset
+                            queryset = Organization.objects.none()
 
-            combined_query = continent_query | country_query | state_query | district_query
-            queryset = queryset.filter(combined_query)
-
-            if not queryset.exists():
-                queryset = Organization.objects.filter(object_id=input_value)
-
-        # Apply category_id or sub_category_id filter
+        # Apply category and subcategory filtering
         if category_id:
             queryset = queryset.filter(Q(category_id=category_id) | Q(sub_category_id=category_id))
 
-        # Apply sub_category_id filter if provided
         if sub_category_id:
             queryset = queryset.filter(sub_category_id=sub_category_id)
 
-        # Order queryset by _id to avoid pagination warning
+        # Order by '_id' to ensure compatibility with pagination
         queryset = queryset.order_by('_id')
 
         return queryset
@@ -435,3 +499,5 @@ class GetOrganizationsByLocation(generics.ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+

@@ -1,11 +1,11 @@
 from rest_framework import serializers
-from ..models import Category
+from ..models import EventSubCategory
+from ..serializers import EventCategorySerializer
 from ..utils import image_path_to_binary
 
 
 
-
-class CategorySerializer(serializers.ModelSerializer):
+class EventSubCategorySerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     def get_image(self, instance):
 
@@ -16,5 +16,5 @@ class CategorySerializer(serializers.ModelSerializer):
                 return format
             return None
     class Meta:
-        model = Category
+        model = EventSubCategory
         fields = "__all__"

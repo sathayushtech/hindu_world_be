@@ -1,4 +1,4 @@
 from enum import Enum
 class UserType(Enum):
-    MEMBER  = 'MEMBER '
+    MEMBER  = 'MEMBER'
     ADMIN = 'ADMIN'
