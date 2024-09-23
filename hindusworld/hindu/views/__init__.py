@@ -12,3 +12,5 @@ from .event_category_view import EventCategoryView
 from .training_category_view import TrainingCategoryView
 from .main_view import EventsMain,TrainingMain,OrganizationMain
 from .home_view import HomeView
+from .event_subcategory_view import EventSubCategoryView
+from .training_subcategory_view import TrainingSubCategoryView

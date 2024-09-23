@@ -1,8 +1,9 @@
 from rest_framework import viewsets
-from ..models import *
-from ..serializers import EventCategorySerializer
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from ..models import EventCategory, EventSubCategory
+from ..serializers import EventCategorySerializer,EventSubCategorySerializer
 
 class EventCategoryView(viewsets.ModelViewSet):
     queryset = EventCategory.objects.all()
@@ -10,34 +11,20 @@ class EventCategoryView(viewsets.ModelViewSet):
     permission_classes = []
     
     def get_permissions(self):
-        if self.request.method in ['POST', 'PUT', ]:
+        if self.request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             return [IsAuthenticated()]
         return super().get_permissions()
-    
 
-    def list(self, request):
-        filter_kwargs = {}
+    @action(detail=True, methods=['get'])
+    def subcategories(self, request, pk=None):
+        # Get the Category by ID
+        category = self.get_object()
 
-        for key, value in request.query_params.items():
-            filter_kwargs[key] = value
+        # Get all SubCategories related to this Category
+        subcategories = EventSubCategory.objects.filter(category_id=category)
 
-        # if not filter_kwargs:
-        #     return super().list(request)
+        # Serialize SubCategories
+        serialized_data = EventSubCategorySerializer(subcategories, many=True).data
 
-        try:
-            queryset = EventCategory.objects.filter(**filter_kwargs)
-            
-            if not queryset.exists():
-                return Response({
-                    'message': 'Data not found',
-                    'status': 404
-                })
-
-            serialized_data = EventCategorySerializer(queryset, many=True)
-            return Response(serialized_data.data)
-
-        except EventCategory.DoesNotExist:
-            return Response({
-                'message': 'Objects not found',
-                'status': 404
-            })
+        # Return the list of SubCategory data in the response
+        return Response(serialized_data)

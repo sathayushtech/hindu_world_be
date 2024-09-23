@@ -25,7 +25,7 @@ class MemberSerializer(serializers.ModelSerializer):
     
     class Meta:
         model=Register
-        fields=["id","full_name","father_name","profile_pic","dob","contact_number", "experience", "certificate", "achievements", "user_type", "training_type", "email","Organization","Events","Training"]
+        fields=["id","full_name","father_name","profile_pic","gender","contact_number", "certificate", "user_type", "email","Organization","Events","Training"]
 
 
 class MemberPicSerializer(serializers.ModelSerializer):

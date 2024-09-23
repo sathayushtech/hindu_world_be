@@ -1,10 +1,10 @@
-from rest_framework import viewsets, generics
-from ..models import TrainingCategory
-from ..serializers.training_category_serializers import TrainingCategorySerializer
+from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
-
+from rest_framework.decorators import action
+from ..models import TrainingCategory, TrainingSubCategory
+from ..serializers.training_category_serializers import TrainingCategorySerializer
+from ..serializers.training_subcategory_serializer import TrainingSubCategorySerializer
 
 
 class TrainingCategoryView(viewsets.ModelViewSet):
@@ -19,21 +19,31 @@ class TrainingCategoryView(viewsets.ModelViewSet):
 
     def list(self, request):
         filter_kwargs = {key: value for key, value in request.query_params.items()}
+        queryset = TrainingCategory.objects.filter(**filter_kwargs)
 
-        try:
-            queryset = TrainingCategory.objects.filter(**filter_kwargs)
-            
-            if not queryset.exists():
-                return Response({
-                    'message': 'Data not found',
-                    'status': 404
-                }, status=404)
-
-            serialized_data = TrainingCategorySerializer(queryset, many=True)
-            return Response(serialized_data.data)
-
-        except TrainingCategory.DoesNotExist:
+        if not queryset.exists():
             return Response({
-                'message': 'Objects not found',
+                'message': 'Data not found',
                 'status': 404
             }, status=404)
+
+        serialized_data = TrainingCategorySerializer(queryset, many=True)
+        return Response(serialized_data.data)
+
+    @action(detail=True, methods=['get'])
+    def subcategories(self, request, pk=None):
+        # Get the Category by ID
+        category = self.get_object()
+
+        # Get all SubCategories related to this Category (use 'category' as the field name)
+        subcategories = TrainingSubCategory.objects.filter(category=category)
+
+        if not subcategories.exists():
+            return Response({
+                'message': 'No subcategories found',
+                'status': 404
+            }, status=404)
+
+        # Serialize SubCategories
+        serialized_data = TrainingSubCategorySerializer(subcategories, many=True).data
+        return Response(serialized_data)

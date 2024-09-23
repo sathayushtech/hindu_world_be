@@ -1,7 +1,7 @@
 from rest_framework import viewsets, generics
 from ..models import Category,SubCategory
-
 from ..serializers.category_serializer import CategorySerializer
+from ..serializers.sub_category_serializer import SubCategorySerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -19,8 +19,8 @@ class CategoryView(viewsets.ModelViewSet):
         # Get all SubCategories related to this Category
         subcategories = SubCategory.objects.filter(category_id=category)
 
-        # Create a list of dictionaries with '_id' and 'name' as keys
-        subcategory_data = [{"_id": subcategory._id, "name": subcategory.name} for subcategory in subcategories]
+        # Serialize SubCategories
+        serialized_data = SubCategorySerializer(subcategories, many=True).data
 
         # Return the list of SubCategory data in the response
-        return Response(subcategory_data)
+        return Response(serialized_data)
