@@ -40,10 +40,13 @@ class EventsViewSet(viewsets.ModelViewSet):
 
 
     def list(self, request):
-    # Extract query parameters for filtering
+        # Extract query parameters for filtering
         for event in Events.objects.all():
             event.update_event_status()
         filter_kwargs = request.query_params.dict()
+
+        # Add status filter to the query parameters
+        filter_kwargs['status'] = 'SUCCESS'
 
         # Get the queryset filtered by the provided query parameters
         queryset = Events.objects.filter(**filter_kwargs)
@@ -199,8 +202,6 @@ class UpdateEventStatus(generics.GenericAPIView):
 
 
 
-
-
 class GetEventsByLocation(generics.ListAPIView):
     serializer_class = EventsSerializer1
     pagination_class = CustomPagination
@@ -242,6 +243,9 @@ class GetEventsByLocation(generics.ListAPIView):
                             queryset = Events.objects.none()
         else:
             queryset = Events.objects.all()
+
+        # Apply status filter to get only SUCCESS events
+        queryset = queryset.filter(status='SUCCESS')
 
         # Apply category and subcategory filtering
         if category:

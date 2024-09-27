@@ -24,7 +24,7 @@ class Training(models.Model):
     contact_details=models.CharField(db_column='contact_details',max_length=100)
     created_at = models.DateTimeField(db_column='created_at',auto_now_add=True)
     status=models.CharField(db_column='status',max_length=50,choices=[(e.name,e.value) for e in status],default=status.PENDING.value)
-    video=models.TextField(db_column='video')
+    video=models.TextField(db_column='video',null=True, blank=True)
     training_type = models.CharField(db_column='training_type',max_length=10,choices=[(e.value, e.value) for e in TrainingType],default=TrainingType.OFFLINE.value) 
     category = models.ForeignKey(TrainingCategory, db_column='category', on_delete=models.CASCADE, null=True, blank=True)
     sub_category = models.ForeignKey(TrainingSubCategory, db_column='sub_category', on_delete=models.CASCADE, null=True, blank=True)

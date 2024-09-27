@@ -7,21 +7,19 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 
 
-
 class StateViews(viewsets.ModelViewSet):
     queryset = State.objects.all()
     serializer_class = StateSeerializer
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['name', 'country']  # Add the fields you want to search by
+    search_fields = ['name', 'country__name']  # Ensure these fields are valid in your model
 
     def list(self, request):
         filter_kwargs = {}
-
+        
+        # Filter only with valid fields
         for key, value in request.query_params.items():
-            filter_kwargs[key] = value
-
-        # if not filter_kwargs:
-        #     return super().list(request)
+            if key in ['name', 'country']:  # Adjust based on actual model fields
+                filter_kwargs[key] = value
 
         try:
             queryset = State.objects.filter(**filter_kwargs)
@@ -40,12 +38,11 @@ class StateViews(viewsets.ModelViewSet):
             serialized_data = StateSeerializer(queryset, many=True)
             return Response(serialized_data.data)
 
-        except State.DoesNotExist:
+        except Exception as e:
             return Response({
-                'message': 'Objects not found',
-                'status': 404
-            })
-
+                'message': str(e),
+                'status': 500
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class states_by_country(generics.GenericAPIView):

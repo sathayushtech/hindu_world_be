@@ -8,7 +8,7 @@ class EventCategory(models.Model):
     name = models.CharField(db_column='name', max_length=45)
     desc = models.CharField(db_column='desc', blank=True, null=True, max_length=250)
     created_at = models.DateTimeField(auto_now_add=True)
-    pic = models.CharField(max_length=500, blank=True, null=True)
+    image = models.CharField(max_length=500, blank=True, null=True)
 
     class Meta:
         db_table = 'Event_category'
