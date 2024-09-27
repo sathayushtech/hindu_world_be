@@ -330,8 +330,6 @@ class GetbyDistrictLocationOrganization(generics.ListAPIView):
 
 
 
-
-
 class OrgnizationView(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer4
@@ -344,8 +342,6 @@ class OrgnizationView(viewsets.ModelViewSet):
         'object_id__state__country__continent__name'
     ]
 
-
-
     @action(detail=False, methods=['get'], url_path='by-field/(?P<field_name>[^/.]+)/(?P<input_value>[^/.]+)')
     def get_item_by_field(self, request, field_name=None, input_value=None):
         if not input_value or not field_name:
@@ -357,8 +353,11 @@ class OrgnizationView(viewsets.ModelViewSet):
         try:
             field_names = [field.name for field in Organization._meta.get_fields()]
             if field_name in field_names:
-                filter_kwargs = {field_name: input_value}
+                # Add status filter for SUCCESS
+                filter_kwargs = {field_name: input_value, 'status': 'SUCCESS'}
                 queryset = Organization.objects.filter(**filter_kwargs)
+                
+                # Paginate results if pagination is enabled
                 page = self.paginate_queryset(queryset)
                 if page is not None:
                     serializer = self.get_serializer(page, many=True)
@@ -376,7 +375,6 @@ class OrgnizationView(viewsets.ModelViewSet):
                 'message': 'Field does not exist',
                 'status': status.HTTP_400_BAD_REQUEST
             })
-        
 
 
 
@@ -437,7 +435,6 @@ class OrgnizationView(viewsets.ModelViewSet):
 
 
 
-
 class GetOrganizationsByLocation(generics.ListAPIView):
     serializer_class = OrganizationSerializer4
     pagination_class = CustomPagination
@@ -451,27 +448,28 @@ class GetOrganizationsByLocation(generics.ListAPIView):
         if not input_value and not category_id and not sub_category_id:
             raise ValidationError("At least one of 'input_value', 'category_id', or 'sub_category_id' is required.")
 
-        queryset = Organization.objects.all()
+        # Start by filtering only organizations with status 'SUCCESS'
+        queryset = Organization.objects.filter(status='SUCCESS')
 
         # Check input_value against continent, country, state, and district
         if input_value:
             # Try matching continent
-            continent_match = Organization.objects.filter(object_id__state__country__continent__pk=input_value)
+            continent_match = queryset.filter(object_id__state__country__continent__pk=input_value)
             if continent_match.exists():
                 queryset = continent_match
             else:
                 # Try matching country
-                country_match = Organization.objects.filter(object_id__state__country__pk=input_value)
+                country_match = queryset.filter(object_id__state__country__pk=input_value)
                 if country_match.exists():
                     queryset = country_match
                 else:
                     # Try matching state
-                    state_match = Organization.objects.filter(object_id__state__pk=input_value)
+                    state_match = queryset.filter(object_id__state__pk=input_value)
                     if state_match.exists():
                         queryset = state_match
                     else:
                         # Try matching district
-                        district_match = Organization.objects.filter(object_id__pk=input_value)
+                        district_match = queryset.filter(object_id__pk=input_value)
                         if district_match.exists():
                             queryset = district_match
                         else:
@@ -499,5 +497,3 @@ class GetOrganizationsByLocation(generics.ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
-

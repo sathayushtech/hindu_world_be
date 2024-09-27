@@ -12,17 +12,19 @@ class DistrictVIew(viewsets.ModelViewSet):
     queryset = District.objects.all()
     serializer_class = DistrictSerializer
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['name', 'state']  # Add the fields you want to search by
+    search_fields = ['name', 'state']  # Ensure these fields exist in your District model
 
     def list(self, request):
         filter_kwargs = {}
 
         for key, value in request.query_params.items():
-            filter_kwargs[key] = value
+            # Only add valid filter fields
+            if key in ['name', 'state']:  # Adjust based on actual model fields
+                filter_kwargs[key] = value
 
         try:
             queryset = District.objects.filter(**filter_kwargs)
-            
+
             if not queryset.exists():
                 return Response({
                     'message': 'Data not found',
@@ -37,12 +39,11 @@ class DistrictVIew(viewsets.ModelViewSet):
             serialized_data = DistrictSerializer(queryset, many=True)
             return Response(serialized_data.data)
 
-        except District.DoesNotExist:
+        except Exception as e:
             return Response({
-                'message': 'Objects not found',
-                'status': 404
-            })
-
+                'message': str(e),
+                'status': 500
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 

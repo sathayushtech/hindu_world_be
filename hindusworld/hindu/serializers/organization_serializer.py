@@ -101,8 +101,8 @@ class OrganizationSerializer4(serializers.ModelSerializer):
         
         # Fields to check for empty or null values
         fields_to_check = [
-             'org_logo', 'chairman', 'web_url',  'reg_id', 'org_images'
-             'organization_name', 'web_url','desc','org_detail','est_by','location'
+            'org_logo', 'org_images', 'organization_name', 'chairman', 
+            'web_url', 'reg_id', 'org_detail', 'est_by', 'location'
            
         ]
         
@@ -115,38 +115,6 @@ class OrganizationSerializer4(serializers.ModelSerializer):
 
 
 
-
-
-
-
-# class OrganizationSerializer5(serializers.ModelSerializer):
-#     org_logo = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = Organization
-#         fields = ['_id', 'organization_name', 'org_logo','org_images', 'chairman', 'web_url', 'reg_id','est_by','mission','org_detail']
-
-#     def get_org_logo(self, obj):
-#         if obj.org_logo:
-#             return image_path_to_binary(obj.org_logo)
-#         return None
-
-#     def to_representation(self, instance):
-#         representation = super().to_representation(instance)
-        
-#         # Fields to check for empty or null values
-#         fields_to_check = [
-#              'org_logo','org_images', 'chairman', 'web_url',  'reg_id', 
-#              'organization_name', 'web_url','desc','org_detail','est_by'
-           
-#         ]
-        
-#         # Set a default value of "data not found" for empty or unwanted values
-#         for field in fields_to_check:
-#             if representation.get(field) in [None, '', 'null', '-']:
-#                 representation[field] = "data not found"
-        
-#         return representation
 
  
 

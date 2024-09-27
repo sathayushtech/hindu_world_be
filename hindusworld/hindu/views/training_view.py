@@ -13,6 +13,10 @@ import os
 from rest_framework.exceptions import ValidationError
 from django.db.models import Q
 from rest_framework import viewsets, pagination
+from datetime import datetime
+from rest_framework import status as http_status
+from ..enums import status
+
 
 class CustomPagination(pagination.PageNumberPagination):
     page_size = 100
@@ -29,6 +33,7 @@ class TrainingView(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
+            # Fetch the Register instance for the logged-in user
             username = request.user.username
             register_instance = Register.objects.get(username=username)
             user_type = register_instance.user_type
@@ -39,48 +44,48 @@ class TrainingView(viewsets.ModelViewSet):
                     "message": "Only ADMIN users can create training records."
                 }, status=status.HTTP_403_FORBIDDEN)
 
-            data = request.data
+            # Capture the current time
+            created_at = datetime.now()
 
-            image_data = data.get('image')
-            video_data = data.get('video')
+            # Proceed with training creation
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
-            _id = str(uuid.uuid4())
-            name = data.get('name', 'default_name')
-
-            if image_data:
-                image_path = save_image_to_folder(image_data, _id, name, 'training')
+            # Handle image
+            image_data = request.data.get('image')
+            if image_data and image_data != "null":
+                image_path = save_image_to_folder(image_data, serializer.instance._id, serializer.instance.name, 'trainings')
                 if image_path:
-                    data['image'] = image_path
+                    serializer.instance.image = image_path
                 else:
                     return Response({
                         "message": "Failed to save image."
                     }, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                data['image'] = "null"
 
-            if video_data:
-                video_path = save_video_to_folder(video_data, _id, name, 'training')
+            # Handle video
+            video_data = request.data.get('video')
+            if video_data and video_data != "null":
+                video_path = save_video_to_folder(video_data, serializer.instance._id, serializer.instance.name, 'trainings')
                 if video_path:
-                    data['video'] = video_path
+                    serializer.instance.video = video_path
                 else:
                     return Response({
                         "message": "Failed to save video."
                     }, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                data['video'] = "null"
 
-            serializer = self.get_serializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+            # Save updated serializer instance
+            serializer.instance.save()
 
-            # Send email notification to EMAIL_HOST_USER
+            # Send email notification
             send_mail(
                 'New Training Session Added',
                 f'User ID: {request.user.id}\n'
                 f'Contact Number: {register_instance.contact_number}\n'
                 f'Full Name: {request.user.get_full_name()}\n'
                 f'Training ID: {serializer.instance._id}\n'
-                f'Training Name: {serializer.instance.name}',
+                f'Training Name: {serializer.instance.name}\n'
+                f'Created At: {created_at.strftime("%Y-%m-%d %H:%M:%S")}',
                 settings.EMAIL_HOST_USER,
                 [settings.EMAIL_HOST_USER],
                 fail_silently=False,
@@ -101,6 +106,10 @@ class TrainingView(viewsets.ModelViewSet):
                 "message": "An error occurred.",
                 "error": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
 
     def retrieve(self, request, pk=None):
         try:
@@ -129,10 +138,10 @@ class TrainingView(viewsets.ModelViewSet):
             return Response({'message': 'Object not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-
     def list(self, request, *args, **kwargs):
         try:
-            queryset = self.get_queryset()
+            # Filter queryset to include only items with status SUCCESS
+            queryset = self.get_queryset().filter(status=status.SUCCESS.value)
             serializer = self.get_serializer(queryset, many=True)
             data = serializer.data
 
@@ -162,9 +171,7 @@ class TrainingView(viewsets.ModelViewSet):
             return Response({
                 "message": "An error occurred.",
                 "error": str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
+            }, status=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def update(self, request, pk=None):
         try:
@@ -186,12 +193,12 @@ class TrainingView(viewsets.ModelViewSet):
             name = data.get('name', 'default_name')
 
             if image_data:
-                image_path = save_image_to_folder(image_data, _id, name, 'training')
+                image_path = save_image_to_folder(image_data, _id, name, 'trainings')
                 if image_path:
                     data['image'] = image_path
 
             if video_data:
-                video_path = save_video_to_folder(video_data, _id, name, 'training')
+                video_path = save_video_to_folder(video_data, _id, name, 'trainings')
                 if video_path:
                     data['video'] = video_path
 
