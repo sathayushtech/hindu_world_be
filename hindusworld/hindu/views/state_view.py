@@ -5,9 +5,12 @@ from rest_framework .response import Response
 from rest_framework import generics,status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
+from ..utils import CustomPagination
+
 
 
 class StateViews(viewsets.ModelViewSet):
+    pagination_class = CustomPagination
     queryset = State.objects.all()
     serializer_class = StateSeerializer
     filter_backends = [SearchFilter, DjangoFilterBackend]

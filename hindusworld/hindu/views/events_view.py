@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.core.mail import send_mail
 from django.conf import settings
 from datetime import datetime
-from ..utils import save_image_to_folder
+from ..utils import save_image_to_azure
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from ..enums import EventStatusEnum
@@ -35,7 +35,7 @@ class CustomPagination(pagination.PageNumberPagination):
 class EventsViewSet(viewsets.ModelViewSet):
     queryset = Events.objects.all()
     serializer_class = EventsSerializer1
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
 
@@ -83,6 +83,10 @@ class EventsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
+
+
+
+
     def create(self, request, *args, **kwargs):
         try:
             username = request.user.username
@@ -98,41 +102,61 @@ class EventsViewSet(viewsets.ModelViewSet):
 
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            instance = serializer.save()
 
+            # Process brochure
             brochure = request.data.get('brochure')
             if brochure and brochure != "null":
-                saved_brochure_location = save_image_to_folder(brochure, serializer.instance._id, serializer.instance.name, 'eventbrochures')
+                saved_brochure_location = save_image_to_azure(brochure, instance._id, instance.name, 'eventbrochures')
                 if saved_brochure_location:
-                    serializer.instance.brochure = saved_brochure_location
+                    try:
+                        # Extract relative path from URL
+                        brochure_relative_path = saved_brochure_location.split('sathayushstorage.blob.core.windows.net/sathayush/')[1]
+                        instance.brochure = brochure_relative_path
+                    except IndexError:
+                        instance.brochure = saved_brochure_location  # Fallback to full URL if split fails
+                    instance.save()
 
+            # Process event images
             event_images = request.data.get('event_images', [])
             if event_images:
                 saved_event_image_paths = []
                 for image_data in event_images:
                     if image_data and image_data != "null":
-                        saved_location = save_image_to_folder(image_data, serializer.instance._id, serializer.instance.name, 'hinduworldevents')
+                        saved_location = save_image_to_azure(image_data, instance._id, instance.name, 'hinduworldevents')
                         if saved_location:
-                            saved_event_image_paths.append(saved_location)
-                serializer.instance.event_images = saved_event_image_paths
-                serializer.instance.save()
+                            try:
+                                # Extract relative path from URL
+                                event_image_relative_path = saved_location.split('sathayushstorage.blob.core.windows.net/sathayush/')[1]
+                                saved_event_image_paths.append(event_image_relative_path)
+                            except IndexError:
+                                saved_event_image_paths.append(saved_location)  # Fallback to full URL if split fails
+                if saved_event_image_paths:
+                    instance.event_images = saved_event_image_paths
+                    instance.save()
 
+            # Send email notification
             send_mail(
                 'New Event Added',
                 f'User ID: {request.user.id}\n'
                 f'Contact Number: {register_instance.contact_number}\n'
                 f'Full Name: {request.user.get_full_name()}\n'
                 f'Created Time: {created_at.strftime("%Y-%m-%d %H:%M:%S")}\n'
-                f'Event ID: {serializer.instance._id}\n'
-                f'Event Name: {serializer.instance.name}',
+                f'Event ID: {instance._id}\n'
+                f'Event Name: {instance.name}',
                 settings.EMAIL_HOST_USER,
                 [settings.EMAIL_HOST_USER],
                 fail_silently=False,
             )
 
+            # Return successful response with correct paths
             return Response({
                 "message": "Event added successfully.",
-                "result": serializer.data
+                "result": {
+                    **serializer.data,
+                    "brochure": instance.brochure,
+                    "event_images": instance.event_images
+                }
             }, status=status.HTTP_201_CREATED)
 
         except Register.DoesNotExist:
@@ -145,6 +169,7 @@ class EventsViewSet(viewsets.ModelViewSet):
                 "message": "An error occurred.",
                 "error": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
     def update(self, request, pk=None):
         try:

@@ -4,9 +4,12 @@ from ..serializers.category_serializer import CategorySerializer
 from ..serializers.sub_category_serializer import SubCategorySerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from ..utils import CustomPagination
+
 
 
 class CategoryView(viewsets.ModelViewSet):
+    pagination_class = CustomPagination
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
