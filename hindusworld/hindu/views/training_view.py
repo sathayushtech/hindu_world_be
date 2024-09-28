@@ -7,7 +7,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from ..utils import save_image_to_folder,image_path_to_binary,video_path_to_binary,save_video_to_folder
+from ..utils import save_image_to_azure,image_path_to_binary,video_path_to_binary,save_video_to_azure
 import uuid
 import os
 from rest_framework.exceptions import ValidationError
@@ -26,7 +26,17 @@ class CustomPagination(pagination.PageNumberPagination):
 
 
 
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework import viewsets
+from django.core.mail import send_mail
+from datetime import datetime
+from django.conf import settings
+
+
+
 class TrainingView(viewsets.ModelViewSet):
+    pagination_class = CustomPagination
     queryset = Training.objects.all()
     serializer_class = TrainingSerializer
     permission_classes = [IsAuthenticated]
@@ -50,14 +60,20 @@ class TrainingView(viewsets.ModelViewSet):
             # Proceed with training creation
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            instance = serializer.save()
 
             # Handle image
             image_data = request.data.get('image')
             if image_data and image_data != "null":
-                image_path = save_image_to_folder(image_data, serializer.instance._id, serializer.instance.name, 'trainings')
-                if image_path:
-                    serializer.instance.image = image_path
+                saved_image_location = save_image_to_azure(image_data, instance._id, instance.name, 'trainings')
+                if saved_image_location:
+                    try:
+                        # Extract relative path from URL
+                        image_relative_path = saved_image_location.split('sathayushstorage.blob.core.windows.net/sathayush/')[1]
+                        instance.image = image_relative_path
+                    except IndexError:
+                        instance.image = saved_image_location  # Fallback to full URL if split fails
+                    instance.save()
                 else:
                     return Response({
                         "message": "Failed to save image."
@@ -66,16 +82,19 @@ class TrainingView(viewsets.ModelViewSet):
             # Handle video
             video_data = request.data.get('video')
             if video_data and video_data != "null":
-                video_path = save_video_to_folder(video_data, serializer.instance._id, serializer.instance.name, 'trainings')
-                if video_path:
-                    serializer.instance.video = video_path
+                saved_video_location = save_video_to_azure(video_data, instance._id, instance.name, 'trainings')
+                if saved_video_location:
+                    try:
+                        # Extract relative path from URL
+                        video_relative_path = saved_video_location.split('sathayushstorage.blob.core.windows.net/sathayush/')[1]
+                        instance.video = video_relative_path
+                    except IndexError:
+                        instance.video = saved_video_location  # Fallback to full URL if split fails
+                    instance.save()
                 else:
                     return Response({
                         "message": "Failed to save video."
                     }, status=status.HTTP_400_BAD_REQUEST)
-
-            # Save updated serializer instance
-            serializer.instance.save()
 
             # Send email notification
             send_mail(
@@ -83,8 +102,8 @@ class TrainingView(viewsets.ModelViewSet):
                 f'User ID: {request.user.id}\n'
                 f'Contact Number: {register_instance.contact_number}\n'
                 f'Full Name: {request.user.get_full_name()}\n'
-                f'Training ID: {serializer.instance._id}\n'
-                f'Training Name: {serializer.instance.name}\n'
+                f'Training ID: {instance._id}\n'
+                f'Training Name: {instance.name}\n'
                 f'Created At: {created_at.strftime("%Y-%m-%d %H:%M:%S")}',
                 settings.EMAIL_HOST_USER,
                 [settings.EMAIL_HOST_USER],
@@ -93,7 +112,7 @@ class TrainingView(viewsets.ModelViewSet):
 
             return Response({
                 "message": "Training session added successfully.",
-                "result": serializer.data
+                "result": TrainingSerializer(instance).data
             }, status=status.HTTP_201_CREATED)
 
         except Register.DoesNotExist:
@@ -106,42 +125,14 @@ class TrainingView(viewsets.ModelViewSet):
                 "message": "An error occurred.",
                 "error": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
-
-
-
-
-    def retrieve(self, request, pk=None):
-        try:
-            training_instance = self.get_object()
-            serializer = TrainingSerializer(training_instance)
-            data = serializer.data
-
-            image_path = data.get('image')
-            video_path = data.get('video')
-
-            if image_path and image_path != "null":
-                img_url = os.path.join(settings.FILE_URL, image_path)
-                image_binary = image_path_to_binary(img_url)
-                if image_binary:
-                    data['image'] = image_binary.decode('utf-8')
-
-            if video_path and video_path != "null":
-                vid_url = os.path.join(settings.FILE_URL, video_path)
-                video_binary = video_path_to_binary(vid_url)
-                if video_binary:
-                    data['video'] = video_binary.decode('utf-8')
-
-            return Response(data)
-
-        except Training.DoesNotExist:
-            return Response({'message': 'Object not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
     def list(self, request, *args, **kwargs):
         try:
             # Filter queryset to include only items with status SUCCESS
-            queryset = self.get_queryset().filter(status=status.SUCCESS.value)
+            queryset = self.get_queryset().filter(status='SUCCESS')
             serializer = self.get_serializer(queryset, many=True)
             data = serializer.data
 
@@ -150,28 +141,20 @@ class TrainingView(viewsets.ModelViewSet):
                 video_path = item.get('video')
 
                 if image_path and image_path != "null":
-                    img_url = os.path.join(settings.FILE_URL, image_path)
-                    image_binary = image_path_to_binary(img_url)
-                    if image_binary:
-                        item['image'] = image_binary.decode('utf-8')
-                    else:
-                        item['image'] = "null"
+                    # Ensure the URL is complete
+                    item['image'] = image_path if image_path.startswith('http') else os.path.join(settings.FILE_URL, image_path)
 
                 if video_path and video_path != "null":
-                    vid_url = os.path.join(settings.FILE_URL, video_path)
-                    video_binary = video_path_to_binary(vid_url)
-                    if video_binary:
-                        item['video'] = video_binary.decode('utf-8')
-                    else:
-                        item['video'] = "null"
+                    # Ensure the URL is complete
+                    item['video'] = video_path if video_path.startswith('http') else os.path.join(settings.FILE_URL, video_path)
 
-            return Response(data)
+            return Response(data, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({
                 "message": "An error occurred.",
                 "error": str(e)
-            }, status=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def update(self, request, pk=None):
         try:
@@ -193,12 +176,12 @@ class TrainingView(viewsets.ModelViewSet):
             name = data.get('name', 'default_name')
 
             if image_data:
-                image_path = save_image_to_folder(image_data, _id, name, 'trainings')
+                image_path = save_image_to_azure(image_data, _id, name, 'trainings')
                 if image_path:
                     data['image'] = image_path
 
             if video_data:
-                video_path = save_video_to_folder(video_data, _id, name, 'trainings')
+                video_path = save_video_to_azure(video_data, _id, name, 'trainings')
                 if video_path:
                     data['video'] = video_path
 
@@ -209,7 +192,7 @@ class TrainingView(viewsets.ModelViewSet):
             return Response({
                 "message": "Training session updated successfully.",
                 "data": TrainingSerializer(updated_instance).data
-            })
+            }, status=status.HTTP_200_OK)
 
         except Training.DoesNotExist:
             return Response({'message': 'Object not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -226,8 +209,32 @@ class TrainingView(viewsets.ModelViewSet):
 
 
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            # Retrieve the object by ID
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            data = serializer.data
 
+            # Construct image and video URLs
+            image_path = data.get('image')
+            video_path = data.get('video')
 
+            if image_path and image_path != "null":
+                # Ensure the URL is complete
+                data['image'] = image_path if image_path.startswith('http') else os.path.join(settings.FILE_URL, image_path)
+
+            if video_path and video_path != "null":
+                # Ensure the URL is complete
+                data['video'] = video_path if video_path.startswith('http') else os.path.join(settings.FILE_URL, video_path)
+
+            return Response(data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                "message": "An error occurred.",
+                "error": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -260,7 +267,7 @@ class UpdateTrainingStatus(generics.GenericAPIView):
 
 
 class GetTrainingsByLocation(generics.ListAPIView):
-    serializer_class = TrainingSerializer5  # Replace with your actual serializer
+    serializer_class = TrainingSerializer5  
     pagination_class = CustomPagination
 
     def get_queryset(self):

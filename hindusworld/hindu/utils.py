@@ -8,6 +8,8 @@ import base64
 import os
 import uuid
 from rest_framework.pagination import PageNumberPagination
+from azure.storage.blob import BlobServiceClient
+
 
 
 
@@ -24,43 +26,54 @@ class CustomPagination(PageNumberPagination):
 
 
 
-def save_file_to_folder(file_data, _id, name, entity_type, file_type):
-    """
-    Saves the file to the appropriate folder and returns the relative path.
-    """
-    decoded_file = base64.b64decode(file_data)
-    folder_name = str(_id)
-    folder_path = os.path.join(settings.FILE_URL, entity_type, folder_name)
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-    file_name = f"{name}_{uuid.uuid4().hex[:8]}.{file_type}"
-    file_path = os.path.join(folder_path, file_name)
-    with open(file_path, "wb") as file:
-        file.write(decoded_file)
-    relative_file_path = os.path.join(entity_type, folder_name, file_name)
-    return relative_file_path
-def file_path_to_binary(file_path):
-    """
-    Converts the file at the given path to a base64-encoded string.
-    """
-    img_url = settings.FILE_URL
-    full_path = os.path.join(img_url, file_path)
-    if os.path.exists(full_path):
-        with open(full_path, "rb") as file:
-            file_data = file.read()
-            return base64.b64encode(file_data).decode('utf-8')
-    return None
+# def save_file_to_folder(file_data, _id, name, entity_type, file_type):
+#     """
+#     Saves the file to the appropriate folder and returns the relative path.
+#     """
+#     decoded_file = base64.b64decode(file_data)
+#     folder_name = str(_id)
+#     folder_path = os.path.join(settings.FILE_URL, entity_type, folder_name)
+#     if not os.path.exists(folder_path):
+#         os.makedirs(folder_path)
+#     file_name = f"{name}_{uuid.uuid4().hex[:8]}.{file_type}"
+#     file_path = os.path.join(folder_path, file_name)
+#     with open(file_path, "wb") as file:
+#         file.write(decoded_file)
+#     relative_file_path = os.path.join(entity_type, folder_name, file_name)
+#     return relative_file_path
+# def file_path_to_binary(file_path):
+#     """
+#     Converts the file at the given path to a base64-encoded string.
+#     """
+#     img_url = settings.FILE_URL
+#     full_path = os.path.join(img_url, file_path)
+#     if os.path.exists(full_path):
+#         with open(full_path, "rb") as file:
+#             file_data = file.read()
+#             return base64.b64encode(file_data).decode('utf-8')
+#     return None
+
+
+
+
+
+
 #### to save video in base64
 def video_path_to_binary(filename):
+    if not filename:  # Check if filename is None or empty
+        return None
+
     video_url = settings.FILE_URL
+
     def get_base64_encoded_video(video_path):
         if os.path.exists(video_path):
             with open(video_path, "rb") as video_file:
                 video_data = video_file.read()
                 base64_encoded_video = base64.b64encode(video_data)
-                return base64_encoded_video
+                return base64_encoded_video.decode('utf-8')  # Return the base64 string
         else:
             return None
+
     if isinstance(filename, list):
         encoded_videos = []
         for path in filename:
@@ -72,41 +85,78 @@ def video_path_to_binary(filename):
     else:
         video_path = os.path.join(video_url, filename)
         return get_base64_encoded_video(video_path)
+
     return None
 
 
 
 
+# def save_video_to_folder(video_data, _id, name, entity_type):
+#     decoded_video = base64.b64decode(video_data)
+#     folder_name = str(_id)
+#     video_url = settings.FILE_URL
+#     folder_path = os.path.join(video_url, entity_type, folder_name)
+#     if not os.path.exists(folder_path):
+#         os.makedirs(folder_path)
+#     video_name = f"{name}_{uuid.uuid4().hex[:8]}.mp4"
+#     video_path = os.path.join(folder_path, video_name)
+#     with open(video_path, "wb") as video_file:
+#         video_file.write(decoded_video)
+#     relative_video_path = os.path.join(entity_type, folder_name, video_name)
+#     return relative_video_path
 
 
-def save_video_to_folder(video_data, _id, name, entity_type):
-    decoded_video = base64.b64decode(video_data)
-    folder_name = str(_id)
-    video_url = settings.FILE_URL
-    folder_path = os.path.join(video_url, entity_type, folder_name)
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-    video_name = f"{name}_{uuid.uuid4().hex[:8]}.mp4"
-    video_path = os.path.join(folder_path, video_name)
-    with open(video_path, "wb") as video_file:
-        video_file.write(decoded_video)
-    relative_video_path = os.path.join(entity_type, folder_name, video_name)
-    return relative_video_path
 
 
+def save_video_to_azure(video_data, _id, name, entity_type):
+    try:
+        # Decode base64 video
+        decoded_video = base64.b64decode(video_data)
+        
+        # Create a folder name based on the provided _id and entity_type
+        folder_name = str(_id)
+        
+        # Generate unique video name
+        video_name = f"{name}_{uuid.uuid4().hex[:8]}.mp4"
+        
+        # Azure settings
+        container_name = 'sathayush'
+        folder_path = f"{entity_type}/{folder_name}/"  # Example: 'training/1234/'
+        blob_name = f"{folder_path}{video_name}"  # Full path for the video in Azure Blob Storage
+        print(blob_name, "Generated Blob Name")
+        
+        # Initialize BlobServiceClient
+        blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_STORAGE_CONNECTION_STRING)
+        blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+        
+        # Upload the video to Azure Blob Storage
+        blob_client.upload_blob(decoded_video, blob_type="BlockBlob", overwrite=True)
+        
+        # Get the full URL of the uploaded video
+        blob_url = blob_client.url
+        print(blob_url, "Blob URL")
+        
+        return blob_url  # Returning the URL of the uploaded video
 
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")  # Print the error message for debugging
+        return None
+    
+
+    
 
 
 
 def image_path_to_binary(filename):
     img_url = settings.FILE_URL
+    print("img_url",img_url)
     def get_base64_encoded_image(img_path):
         if os.path.exists(img_path):
             with open(img_path, "rb") as image_file:
                 image_data = image_file.read()
                 base64_encoded_image = base64.b64encode(image_data)
                 # print(base64_encoded_image,"123456")
-                return base64_encoded_image
+                return img_path
         else:
             return None
     if isinstance(filename, list):
@@ -119,7 +169,7 @@ def image_path_to_binary(filename):
         return encoded_images
     else:
         img_path = os.path.join(img_url, filename)
-        return get_base64_encoded_image(img_path)
+        return img_path
     return None
 
 
@@ -127,25 +177,54 @@ def image_path_to_binary(filename):
 
 
 
-def save_image_to_folder(image_data, _id, name, entity_type):
+# def save_image_to_folder(image_data, _id, name, entity_type):
+#     decoded_image = base64.b64decode(image_data)
+#     folder_name = str(_id)
+#     img_url = settings.FILE_URL
+#     folder_path = os.path.join(img_url, entity_type, folder_name)
+#     if not os.path.exists(folder_path):
+#         os.makedirs(folder_path)
+#     image_name = f"{name}_{uuid.uuid4().hex[:8]}.jpg"
+#     image_path = os.path.join(folder_path, image_name)
+#     with open(image_path, "wb") as image_file:
+#         image_file.write(decoded_image)
+#     relative_image_path = os.path.join(entity_type, folder_name, image_name)
+#     return relative_image_path
+
+
+
+
+
+
+
+def save_image_to_azure(image_data, _id, name, entity_type):
+    # Decode base64 image
     decoded_image = base64.b64decode(image_data)
+    
+    # Create a folder name based on the provided _id and entity_type
     folder_name = str(_id)
-    img_url = settings.FILE_URL
-    folder_path = os.path.join(img_url, entity_type, folder_name)
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
+    
+    # Generate unique image name
     image_name = f"{name}_{uuid.uuid4().hex[:8]}.jpg"
-    image_path = os.path.join(folder_path, image_name)
-    with open(image_path, "wb") as image_file:
-        image_file.write(decoded_image)
-    relative_image_path = os.path.join(entity_type, folder_name, image_name)
-    return relative_image_path
+    
+    # Azure settings
+    container_name = 'sathayush'
+    folder_path = f"{entity_type}/{folder_name}/"  # Example: 'temple/1234/'
+    blob_name = f"{folder_path}{image_name}"  # Full path for the image in Azure Blob Storage
+    print(blob_name,"3efrgth")
 
+    # Initialize BlobServiceClient
+    blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_STORAGE_CONNECTION_STRING)
+    blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
 
+    # Upload the image to Azure Blob Storage
+    blob_client.upload_blob(decoded_image, blob_type="BlockBlob", overwrite=True)
 
+    # Get the full URL of the uploaded image
+    blob_url = blob_client.url
+    print(blob_url,"blob_url")
 
-
-
+    return blob_name
 
 
 

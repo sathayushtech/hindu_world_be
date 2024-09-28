@@ -5,9 +5,11 @@ from rest_framework.decorators import action
 from ..models import TrainingCategory, TrainingSubCategory
 from ..serializers.training_category_serializers import TrainingCategorySerializer
 from ..serializers.training_subcategory_serializer import TrainingSubCategorySerializer
+from ..utils import CustomPagination
 
 
 class TrainingCategoryView(viewsets.ModelViewSet):
+    pagination_class = CustomPagination
     queryset = TrainingCategory.objects.all()
     serializer_class = TrainingCategorySerializer
     permission_classes = []

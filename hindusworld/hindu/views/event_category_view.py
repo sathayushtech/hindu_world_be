@@ -4,8 +4,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from ..models import EventCategory, EventSubCategory
 from ..serializers import EventCategorySerializer,EventSubCategorySerializer
+from ..utils import CustomPagination
+
 
 class EventCategoryView(viewsets.ModelViewSet):
+    pagination_class = CustomPagination
     queryset = EventCategory.objects.all()
     serializer_class = EventCategorySerializer
     permission_classes = []

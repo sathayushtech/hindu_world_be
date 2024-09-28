@@ -6,11 +6,11 @@ from rest_framework .views import APIView,status
 from rest_framework .response import Response
 from ..enums.user_status_enum import UserStatus
 from rest_framework_simplejwt.tokens import RefreshToken
-from ..utils import validate_email,send_email,send_sms,generate_otp,Resend_sms,send_welcome_email,image_path_to_binary,save_video_to_folder,video_path_to_binary
+from ..utils import validate_email,send_email,send_sms,generate_otp,Resend_sms,send_welcome_email,image_path_to_binary,save_video_to_azure,video_path_to_binary
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from ..utils import save_image_to_folder
+from ..utils import save_image_to_azure
 from datetime import datetime
 from rest_framework.permissions import IsAuthenticated
 
@@ -183,7 +183,7 @@ class UpdateMemberDetails(generics.GenericAPIView):
 
         # Profile Pic handling
         if profile_pic and profile_pic != "null":
-            saved_location = save_image_to_folder(profile_pic, serializer.instance.id, serializer.instance.full_name, 'profile_pic')
+            saved_location = save_image_to_azure(profile_pic, serializer.instance.id, serializer.instance.full_name, 'profile_pic')
             if saved_location:
                 serializer.instance.profile_pic = saved_location
         else:
@@ -191,7 +191,7 @@ class UpdateMemberDetails(generics.GenericAPIView):
 
         # Certificate handling
         if certificate and certificate != "null":
-            saved_location = save_image_to_folder(certificate, serializer.instance.id, serializer.instance.full_name, 'certificate')
+            saved_location = save_image_to_azure(certificate, serializer.instance.id, serializer.instance.full_name, 'certificate')
             if saved_location:
                 serializer.instance.certificate = saved_location
         else:
