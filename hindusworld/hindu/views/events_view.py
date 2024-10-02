@@ -36,7 +36,7 @@ class EventsViewSet(viewsets.ModelViewSet):
     queryset = Events.objects.all()
     serializer_class = EventsSerializer1
     permission_classes = [IsAuthenticated]
-    pagination_class = CustomPagination
+    # pagination_class = CustomPagination
 
 
     def list(self, request):

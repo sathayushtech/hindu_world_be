@@ -6,6 +6,6 @@ from ..utils import CustomPagination
 
 
 class EventSubCategoryView(viewsets.ModelViewSet):
-    pagination_class = CustomPagination
+    # pagination_class = CustomPagination
     queryset = EventSubCategory.objects.all()
     serializer_class = EventSubCategorySerializer

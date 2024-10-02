@@ -9,7 +9,7 @@ from ..utils import CustomPagination
 
 
 class CategoryView(viewsets.ModelViewSet):
-    pagination_class = CustomPagination
+    # pagination_class = CustomPagination
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 

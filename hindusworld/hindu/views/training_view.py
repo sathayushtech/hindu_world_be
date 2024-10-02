@@ -55,46 +55,30 @@ class TrainingView(viewsets.ModelViewSet):
                 }, status=status.HTTP_403_FORBIDDEN)
 
             # Capture the current time
-            created_at = datetime.now()
+            created_at = timezone.now()
 
-            # Proceed with training creation
+            # Proceed with training session creation
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             instance = serializer.save()
 
-            # Handle image
+            # Process image
             image_data = request.data.get('image')
             if image_data and image_data != "null":
-                saved_image_location = save_image_to_azure(image_data, instance._id, instance.name, 'trainings')
+                saved_image_location = save_image_to_azure(image_data, instance._id, instance.name, 'trainingimages')
                 if saved_image_location:
-                    try:
-                        # Extract relative path from URL
-                        image_relative_path = saved_image_location.split('sathayushstorage.blob.core.windows.net/sathayush/')[1]
-                        instance.image = image_relative_path
-                    except IndexError:
-                        instance.image = saved_image_location  # Fallback to full URL if split fails
+                    # No need to split the URL, just save the full path
+                    instance.image = saved_image_location
                     instance.save()
-                else:
-                    return Response({
-                        "message": "Failed to save image."
-                    }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Handle video
+            # Process video
             video_data = request.data.get('video')
             if video_data and video_data != "null":
-                saved_video_location = save_video_to_azure(video_data, instance._id, instance.name, 'trainings')
+                saved_video_location = save_video_to_azure(video_data, instance._id, instance.name, 'trainingvideos')
                 if saved_video_location:
-                    try:
-                        # Extract relative path from URL
-                        video_relative_path = saved_video_location.split('sathayushstorage.blob.core.windows.net/sathayush/')[1]
-                        instance.video = video_relative_path
-                    except IndexError:
-                        instance.video = saved_video_location  # Fallback to full URL if split fails
+                    # No need to split the URL, just save the full path
+                    instance.video = saved_video_location
                     instance.save()
-                else:
-                    return Response({
-                        "message": "Failed to save video."
-                    }, status=status.HTTP_400_BAD_REQUEST)
 
             # Send email notification
             send_mail(
@@ -110,9 +94,14 @@ class TrainingView(viewsets.ModelViewSet):
                 fail_silently=False,
             )
 
+            # Return successful response with correct paths
             return Response({
                 "message": "Training session added successfully.",
-                "result": TrainingSerializer(instance).data
+                "result": {
+                    **serializer.data,
+                    "image": instance.image,
+                    "video": instance.video
+                }
             }, status=status.HTTP_201_CREATED)
 
         except Register.DoesNotExist:
@@ -125,7 +114,8 @@ class TrainingView(viewsets.ModelViewSet):
                 "message": "An error occurred.",
                 "error": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+            
 
 
 

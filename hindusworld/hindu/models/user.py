@@ -16,7 +16,7 @@ from ..enums.gender_enum import Gender
 
 class Register(AbstractUser):
     id = models.CharField(db_column='id', primary_key=True, max_length=45,default=uuid.uuid1, editable=False)
-    full_name = models.CharField(db_column='full_name', max_length=200)
+    full_name = models.CharField(db_column='full_name', max_length=200,null=True, blank=True)
     father_name = models.CharField(db_column='father_name',max_length=50,null=True, blank=True)
     contact_number = models.CharField(db_column='contact_number', max_length=10, null=True, blank=True)
     gender = models.CharField(max_length=50,choices=[(e.name,e.value) for e in Gender],default=Gender.MALE.value)

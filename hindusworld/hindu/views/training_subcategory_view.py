@@ -5,6 +5,6 @@ from ..utils import CustomPagination
 
 
 class TrainingSubCategoryView(viewsets.ModelViewSet):
-    pagination_class = CustomPagination
+    # pagination_class = CustomPagination
     queryset = TrainingSubCategory.objects.all()
     serializer_class = TrainingSubCategorySerializer
