@@ -65,7 +65,7 @@ class TrainingView(viewsets.ModelViewSet):
             # Process image
             image_data = request.data.get('image')
             if image_data and image_data != "null":
-                saved_image_location = save_image_to_azure(image_data, instance._id, instance.name, 'trainingimages')
+                saved_image_location = save_image_to_azure(image_data, instance._id, instance.name, 'trainings')
                 if saved_image_location:
                     # No need to split the URL, just save the full path
                     instance.image = saved_image_location
@@ -74,7 +74,7 @@ class TrainingView(viewsets.ModelViewSet):
             # Process video
             video_data = request.data.get('video')
             if video_data and video_data != "null":
-                saved_video_location = save_video_to_azure(video_data, instance._id, instance.name, 'trainingvideos')
+                saved_video_location = save_video_to_azure(video_data, instance._id, instance.name, 'trainings')
                 if saved_video_location:
                     # No need to split the URL, just save the full path
                     instance.video = saved_video_location
@@ -146,6 +146,10 @@ class TrainingView(viewsets.ModelViewSet):
                 "error": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
+
+
     def update(self, request, pk=None):
         try:
             instance = self.get_object()
@@ -196,6 +200,9 @@ class TrainingView(viewsets.ModelViewSet):
                 "error": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+
+
+
 
 
 
