@@ -9,7 +9,7 @@ from ..utils import CustomPagination
 
 
 class TrainingCategoryView(viewsets.ModelViewSet):
-    pagination_class = CustomPagination
+    # pagination_class = CustomPagination
     queryset = TrainingCategory.objects.all()
     serializer_class = TrainingCategorySerializer
     permission_classes = []
