@@ -107,7 +107,6 @@ def video_path_to_binary(filename):
 
 
 
-
 def save_video_to_azure(video_data, _id, name, entity_type):
     try:
         # Decode base64 video
@@ -121,7 +120,7 @@ def save_video_to_azure(video_data, _id, name, entity_type):
         
         # Azure settings
         container_name = 'sathayush'
-        folder_path = f"{entity_type}/{folder_name}/"  # Example: 'training/1234/'
+        folder_path = f"{entity_type}/{folder_name}/"  # Example: 'trainings/1234/'
         blob_name = f"{folder_path}{video_name}"  # Full path for the video in Azure Blob Storage
         print(blob_name, "Generated Blob Name")
         
@@ -132,18 +131,13 @@ def save_video_to_azure(video_data, _id, name, entity_type):
         # Upload the video to Azure Blob Storage
         blob_client.upload_blob(decoded_video, blob_type="BlockBlob", overwrite=True)
         
-        # Get the full URL of the uploaded video
-        blob_url = blob_client.url
-        print(blob_url, "Blob URL")
-        
-        return blob_url  # Returning the URL of the uploaded video
+        # Instead of returning the full URL, return the relative path
+        return blob_name  # Returning the relative path of the uploaded video
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")  # Print the error message for debugging
         return None
-    
 
-    
 
 
 
