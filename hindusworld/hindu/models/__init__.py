@@ -12,4 +12,6 @@ from .event_category import EventCategory
 from .event_sub_category import EventSubCategory
 from .training_category import TrainingCategory
 from .training_sub_category import TrainingSubCategory
+from .trainer_user import TrainerUser
+
 

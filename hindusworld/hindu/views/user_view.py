@@ -86,7 +86,10 @@ class Validate_LoginOTPView(generics.GenericAPIView):
             'refresh': str(refresh),
             'access': str(access_token),
             'username': user.get_username(),
-            'user_id': user.id
+            'user_id': user.id,
+            'is_member': user.is_member,  
+            'profile_pic': user.profile_pic,
+            'user_type': user.user_type
         }, status=status.HTTP_200_OK)
 
 
