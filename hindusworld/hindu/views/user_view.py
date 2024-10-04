@@ -13,6 +13,8 @@ from django.shortcuts import get_object_or_404
 from ..utils import save_image_to_azure
 from datetime import datetime
 from rest_framework.permissions import IsAuthenticated
+from ..enums import MemberStatus
+
 
 
      
@@ -181,7 +183,7 @@ class UpdateMemberDetails(generics.GenericAPIView):
         mutable_data = request.data.copy()
         serializer = self.get_serializer(instance, data=mutable_data)
         serializer.is_valid(raise_exception=True)
-        serializer.validated_data['is_member'] = True
+        serializer.validated_data['is_member'] = MemberStatus.true.value
         serializer.save()
 
         # Profile Pic handling
