@@ -32,7 +32,7 @@ class Register(AbstractUser):
     certificate = models.TextField(db_column='certificate',null=True,blank=True)
     # experience = models.CharField(db_column='experience', max_length=50,null=True)
     # achievements = models.CharField(db_column='achievements',max_length=500,null=True,blank=True)
-    email = models.EmailField(db_column='email',max_length=50,null=True,blank=True)
+    # email = models.EmailField(db_column='email',max_length=50,null=True,blank=True)
     user_type = models.CharField(db_column='user_type',max_length=45, choices=[(e.name, e.value)for e in UserType], default=UserType.MEMBER.value)
 
     class Meta:
