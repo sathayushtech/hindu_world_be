@@ -211,23 +211,23 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
 
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'sandhya.sathayush@gmail.com'
-# EMAIL_HOST_PASSWORD = 'isha aevi gddv xccr'
-# DEFAULT_FROM_EMAIL = 'sandhya.sathayush@gmail.com'
-
-
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'sathayushtechsolutions@gmail.com'
-EMAIL_HOST_PASSWORD = 'qlbi yxpk vvzo cvjk'
-DEFAULT_FROM_EMAIL = 'sathayushtechsolutions@gmail.com'
+EMAIL_HOST_USER = 'sandhya.sathayush@gmail.com'
+EMAIL_HOST_PASSWORD = 'isha aevi gddv xccr'
+DEFAULT_FROM_EMAIL = 'sandhya.sathayush@gmail.com'
+
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'sathayushtechsolutions@gmail.com'
+# EMAIL_HOST_PASSWORD = 'qlbi yxpk vvzo cvjk'
+# DEFAULT_FROM_EMAIL = 'sathayushtechsolutions@gmail.com'
 
 
 

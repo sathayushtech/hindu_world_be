@@ -90,8 +90,7 @@ class Validate_LoginOTPView(generics.GenericAPIView):
             'username': user.get_username(),
             'user_id': user.id,
             'is_member': user.is_member,  
-            'profile_pic': user.profile_pic,
-            'user_type': user.user_type
+            'profile_pic': user.profile_pic
         }, status=status.HTTP_200_OK)
 
 
