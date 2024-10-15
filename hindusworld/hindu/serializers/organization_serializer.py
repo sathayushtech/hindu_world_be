@@ -102,7 +102,7 @@ class OrganizationSerializer4(serializers.ModelSerializer):
         # Fields to check for empty or null values
         fields_to_check = [
             'org_logo', 'org_images', 'organization_name', 'chairman', 
-            'web_url', 'reg_id', 'org_detail', 'est_by', 'location'
+            'web_url', 'reg_id', 'org_detail', 'est_by', 'location','user','est_date','mission','organization_members'
            
         ]
         
