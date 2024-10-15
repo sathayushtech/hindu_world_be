@@ -122,7 +122,19 @@ class OrganizationSerializer6(serializers.ModelSerializer):
 
     class Meta:
         model = Organization
-        fields = ['_id','organization_name','org_logo','org_images']        
+        fields = ['_id','organization_name','org_logo','org_images']     
+
+
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Fields to check for empty or null values
+        fields_to_check = ['org_images', 'org_logo','organization_name']
+        for field in fields_to_check:
+            if representation.get(field) in [None, '', 'null','-']:
+                representation[field] = "data not found"
+  
+        return representation   
 
 
 
