@@ -8,6 +8,16 @@ class TrainingSerializer(serializers.ModelSerializer):
         model = Training
         fields = "__all__"
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Fields to check for empty or null values
+        fields_to_check = ['training_link', 'sub_category', 'category', 'training_type', 'video','contact_details','trainer_name','end_date','start_date','location','image','desc','name']
+        for field in fields_to_check:
+            if representation.get(field) in [None, '', 'null','-']:
+                representation[field] = "data not found"
+  
+        return representation
+
 
 
 class TrainingSerializer2(serializers.ModelSerializer):
@@ -62,6 +72,22 @@ class TrainingSerializer4(serializers.ModelSerializer):
 
 
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Fields to check for empty or null values
+        fields_to_check = ['name','image']
+        for field in fields_to_check:
+            if representation.get(field) in [None, '', 'null','-']:
+                representation[field] = "data not found"
+  
+        return representation
+
+
+
+
+
+
+
 
 
 class TrainingSerializer5(serializers.ModelSerializer):
@@ -83,3 +109,16 @@ class TrainingSerializer5(serializers.ModelSerializer):
             encoded_video = video_path_to_binary(obj.video)
             return encoded_video if encoded_video else None
         return None
+    
+
+
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Fields to check for empty or null values
+        fields_to_check = ['training_link', 'sub_category', 'category', 'training_type', 'video','contact_details','trainer_name','end_date','start_date','location','image','desc','name']
+        for field in fields_to_check:
+            if representation.get(field) in [None, '', 'null','-']:
+                representation[field] = "data not found"
+  
+        return representation
